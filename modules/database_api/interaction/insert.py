@@ -8,8 +8,8 @@ def insert_event(name: str, about: str, date: str, start: str, end: str, owner: 
     with sqlite3.connect(database_path) as conn:
         cur = conn.cursor()
         cur.execute(f"""
-                    INSERT INTO events (name, about, start, end, owner, place)
-                    VALUES ({name}, {about}, {start}, {end}, {owner}, {place})
+                    INSERT INTO events (name, about, date, start, end, owner, place)
+                    VALUES ('{name}', '{about}', '{date}', '{start}', '{end}', '{owner}', '{place}')
                     """)
 
         event_id = cur.lastrowid
@@ -37,10 +37,10 @@ def insert_user(telegram_id: int) -> int:
 
 
 def insert_group(name: str, about: str):
-    with sqlite3.connect('database.db') as conn:
+    with sqlite3.connect(database_path) as conn:
         cur = conn.cursor()
         cur.execute(f"""
-        INSERT INTO groups (name, about) VALUES ({name}, {about})
+        INSERT INTO groups (name, about) VALUES ('{name}', '{about}')
         """)
 
         group_id = cur.lastrowid
@@ -80,7 +80,7 @@ def insert_group_event(group_id, event_id):
     with sqlite3.connect(database_path) as conn:
         cur = conn.cursor()
         cur.execute(f"""
-        INSERT INTO group_events (group_id, event_id) VALUES ({group_id}, {event_id})
+        INSERT INTO groups_events (group_id, event_id) VALUES ({group_id}, {event_id})
         """)
 
         relation_id = cur.lastrowid

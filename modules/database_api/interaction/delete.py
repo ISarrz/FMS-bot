@@ -19,3 +19,25 @@ def delete_event_by_id(event_id: int):
 
 def delete_class_event_by_id(event: DbEvent):
     delete_event_by_id(event.id)
+
+
+def delete_group_by_id(group_id: int):
+    delete_by_id('groups', group_id)
+
+
+def delete_group_event_by_group_and_event_id(group_id: int, event_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+                       DELETE FROM groups_events WHERE group_id = {group_id} AND event_id = {event_id}
+                       """)
+
+
+def delete_groups_relation_by_groups_id(parent_id: int, child_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+                       DELETE FROM groups_relations WHERE parent_id = {parent_id} AND child_id = {child_id}
+                       """)

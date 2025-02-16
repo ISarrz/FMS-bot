@@ -9,8 +9,8 @@ def fetch_by_id(table_name, row_id: int):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute(f"""
-                       SELECT * FROM {table_name} WHERE id = {row_id}
-                       """)
+        SELECT * FROM {table_name} WHERE id = {row_id}
+        """)
 
         response = cur.fetchone()
 
@@ -27,6 +27,22 @@ def fetch_class_event_by_id(event_id: int):
                     end=response['end'], owner=response['owner'], place=response['place'])
 
     return event
+
+
+def fetch_event_groups_by_id(event_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT groups.id, groups.name, groups.about
+        FROM groups_events 
+        JOIN groups ON groups.id = groups_events.group_id 
+        WHERE groups_events.event_id = {event_id}
+        """)
+
+        response = cur.fetchall()
+
+    return response
 
 
 def fetch_events_by_date(date: str):
@@ -66,6 +82,8 @@ def fetch_all_groups():
         response = cur.fetchall()
 
     return response
+
+
 def fetch_group_by_id(group_id: int):
     return fetch_by_id('groups', group_id)
 
@@ -77,6 +95,31 @@ def fetch_group_by_name(name: str):
         cur.execute(f"""
                        SELECT * FROM groups WHERE name = '{name}'
                        """)
+
+        response = cur.fetchone()
+
+    return response
+
+
+def fetch_parent_by_id(child_id: int):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT groups.id, groups.name, groups.about FROM groups_relations JOIN groups ON groups_relations.parent_id = groups.id 
+        WHERE groups_relations.child_id = {child_id}
+        """)
+
+        response = cur.fetchone()
+
+    return response
+
+def fetch_child_by_id(parent_id: int):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT groups.id, groups.name, groups.about FROM groups_relations JOIN groups ON groups_relations.child_id = groups.id 
+        WHERE groups_relations.parent_id = {parent_id}
+        """)
 
         response = cur.fetchone()
 

@@ -9,17 +9,21 @@ from telegram.ext import (
     MessageHandler,
     filters
 )
+
+from modules.database_api.interaction.delete import delete_event_by_id
+from modules.database_api.interaction.fetch import fetch_event_by_id
+from modules.database_api.interaction.insert import insert_event
 from modules.files_api import get_config_field
-from modules.telegram.admin.groups_panel.sheets import *
+from modules.telegram.admin.events_panel.sheets import *
 from modules.database_api import (
     DbGroup,
     insert_group,
     update_group_by_id,
     delete_group_by_id,
-    insert_groups_relation,
-    delete_groups_relation_by_groups_id,
-    fetch_parent_by_id,
-    fetch_child_by_id
+    delete_group_by_id,
+    update_event_by_id,
+    delete_group_event_by_group_and_event_id,
+    insert_group_event
 
 )
 
@@ -38,19 +42,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def send_overview(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = await get_reply_markup(update, context)
-    await update.message.reply_text(f"Groups №{context.chat_data['sheet'] + 1}", reply_markup=reply_markup)
+    await update.message.reply_text(f"Events №{context.chat_data['sheet'] + 1}", reply_markup=reply_markup)
 
 
 async def update_overview(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     reply_markup = await get_reply_markup(update, context)
 
     await query.edit_message_text(
-        text=f"Groups №{context.chat_data['sheet']}",
+        text=f"Event №{context.chat_data['sheet']}",
         reply_markup=reply_markup
     )
 
 
-async def groups_overview(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def events_overview(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     income = query.data
@@ -78,9 +82,14 @@ async def groups_overview(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(
-            text=f"To add new group write:\n"
+            text=f"To add new event write:\n"
                  f"name:\n"
                  f"about:\n"
+                 f"date:\n"
+                 f"start:\n"
+                 f"end:\n"
+                 f"owner:\n"
+                 f"place:\n"
                  f"------------------\n"
                  f"To cancel write: cancel",
             reply_markup=reply_markup
@@ -89,33 +98,44 @@ async def groups_overview(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return 1
 
     else:
-        group = fetch_group_by_id(int(income))
-        parent = fetch_parent_by_id(group['id'])
-        parent = f"({parent['id']}) {parent['name']}" if parent else "None"
-        child = fetch_child_by_id(group['id'])
-        child = f"({child['id']}) {child['name']}" if child else "None"
+        event = fetch_event_by_id((int(income)))
+        groups = fetch_event_groups_by_id(event['id'])
+        if not groups:
+            groups = "None"
+
+        else:
+            groups = ', '.join([f"({group['id']}) {group['name']}" for group in groups])
 
         keyboard = [[]]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(
-            text=f"Group\n"
-                 f"id: {group['id']}\n"
-                 f"name: {group['name']}\n"
-                 f"about: {group['about']}\n"
-                 f"parent: {parent}\n"
-                 f"child: {child}\n"
+            text=f"Event\n"
+                 f"id: {event['id']}\n"
+                 f"name: {event['name']}\n"
+                 f"about: {event['about']}\n"
+                 f"date: {event['date']}\n"
+                 f"start: {event['start']}\n"
+                 f"end: {event['end']}\n"
+                 f"owner: {event['owner']}\n"
+                 f"place: {event['place']}\n"
+                 f"groups: {groups}\n"
                  f"------------------\n"
-                 f"To edit group write:\n"
-                 f"id:\n"
-                 f"name:\n"
-                 f"about:\n"
+                 f"To edit event write:\n"
+                 f"id: \n"
+                 f"name: \n"
+                 f"about: \n"
+                 f"date: \n"
+                 f"start: \n"
+                 f"end: \n"
+                 f"owner: \n"
+                 f"place: \n"
                  f"------------------\n"
-                 f"To delete group write: delete 'id'\n"
+                 f"To delete event write: delete 'id'\n"
                  f"------------------\n"
-                 f"To add groups relation write: add 'parent_id' 'child_id'\n"
+                 f"To add group event write: add 'group_id' 'event_id'\n"
                  f"------------------\n"
-                 f"To delete groups relation write: del 'parent_id' 'child_id'\n"
+                 f"To delete group event write: del 'group_id' 'event_id'\n"
                  f"------------------\n"
                  f"To cancel write: cancel\n"
             ,
@@ -125,38 +145,38 @@ async def groups_overview(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return 2
 
 
-async def edit_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     income = update.message.text
 
     if "delete " in income:
-        group_id = int(income.replace("delete ", ""))
-        delete_group_by_id(group_id)
+        event_id = int(income.replace("delete ", ""))
+        delete_event_by_id(event_id)
 
     elif "add " in income:
         income = income.replace("add ", "")
-        parent_id, child_id = income.split(" ")
-        insert_groups_relation(int(parent_id), int(child_id))
+        group_id, event_id = income.split(" ")
+        insert_group_event(int(group_id), int(event_id))
 
     elif "del " in income:
-        income = income.replace("dell ", "")
-        parent_id, child_id = income.split(" ")
-        delete_groups_relation_by_groups_id(int(parent_id), int(child_id))
+        income = income.replace("del ", "")
+        group_id, event_id = income.split(" ")
+        delete_group_event_by_group_and_event_id(int(group_id), int(event_id))
 
     elif income != "cancel":
-        group_id, group_name, group_about = income.split("\n")
-        update_group_by_id(group_id=int(group_id), name=group_name, about=group_about)
+        event_id, name, about, date, start, end, owner, place = income.split("\n")
+        update_event_by_id(int(event_id), name, about, date, start, end, owner, place)
 
     await send_overview(update, context)
     return 0
 
 
-async def add_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def add_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     income = update.message.text
 
     if income != "cancel":
         income = income.split("\n")
-        name, about = income
-        insert_group(name=name, about=about)
+        name, about, date, start, end, owner, place = income
+        insert_event(name, about, date, start, end, owner, place)
 
     await send_overview(update, context)
 
@@ -164,17 +184,18 @@ async def add_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print('end')
     return ConversationHandler.END
 
 
-ConversationHandler_groups_panel = ConversationHandler(
-    entry_points=[CommandHandler('groups_panel', start)],
+ConversationHandler_events_panel = ConversationHandler(
+    entry_points=[CommandHandler('events_panel', start)],
 
     states={
-        0: [CallbackQueryHandler(groups_overview)],
+        0: [CallbackQueryHandler(events_overview)],
 
-        1: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_group)],
-        2: [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_group)]
+        1: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_event)],
+        2: [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event)]
     },
 
     fallbacks=[MessageHandler(filters.COMMAND, cancel)],

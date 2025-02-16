@@ -3,6 +3,8 @@ from modules.files_api import get_config_field
 from telegram import *
 from telegram.ext import *
 from modules.telegram import ConversationHandler_groups_panel
+from modules.telegram import ConversationHandler_events_panel
+
 
 # async def help_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #     text = fnc.get_message('help', 'help.txt')
@@ -33,6 +35,7 @@ def main():
     #
     # application.add_handler(start.ConversationHandler_start, 1)
     application.add_handler(ConversationHandler_groups_panel, 1)
+    application.add_handler(ConversationHandler_events_panel, 2)
     # application.add_handler(settings.ConversationHandler_settings, 2)
     # application.add_handler(today.ConversationHandler_today, 3)
     # application.add_handler(timetable.ConversationHandler_timetable, 4)

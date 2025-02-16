@@ -1,1 +1,2 @@
 from modules.telegram.admin.groups_panel.groups_panel import ConversationHandler_groups_panel
+from modules.telegram.admin.events_panel.events_panel import ConversationHandler_events_panel
