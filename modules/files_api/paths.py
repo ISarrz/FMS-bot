@@ -12,6 +12,11 @@ project_path = get_project_path(project_name)
 data_path = os.path.join(project_path, "data")
 database_path = os.path.join(data_path, "database.db")
 database_dumps_path = os.path.join(data_path, "database_dumps")
+config_path = os.path.join(data_path, "config.json")
 
 modules_path = os.path.join(project_path, "modules")
+database_updater_path = os.path.join(modules_path, "database_updater")
 scripts_path = os.path.join(project_path, "scripts")
+
+downloads_path = os.path.join(database_updater_path, "downloads")
+parsed_files_path = os.path.join(database_updater_path, "parsed_files")

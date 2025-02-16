@@ -10,6 +10,7 @@ class DbUser:
 class Event:
     name: str
     about: str
+    date: str
     start: str
     end: str
     owner: str

@@ -18,6 +18,7 @@ with sqlite3.connect(pth.database_path) as conn:
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
         about TEXT,
+        date TEXT,
         start TEXT,
         end TEXT,
         owner TEXT,

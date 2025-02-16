@@ -4,7 +4,7 @@ from modules.files_api.paths import database_path
 from modules.database_api.dataclasses import Event, Group
 
 
-def insert_event(name: str, about: str, start: str, end: str, owner: str, place: str) -> int:
+def insert_event(name: str, about: str, date: str, start: str, end: str, owner: str, place: str) -> int:
     with sqlite3.connect(database_path) as conn:
         cur = conn.cursor()
         cur.execute(f"""
@@ -18,7 +18,9 @@ def insert_event(name: str, about: str, start: str, end: str, owner: str, place:
 
 
 def insert_class_event(event: Event):
-    insert_event(event.name, event.about, event.start, event.end, event.owner, event.place)
+    insert_event(name=event.name, about=event.about, date=event.date,
+                 start=event.start, end=event.end, owner=event.owner,
+                 place=event.place)
 
 
 def insert_user(telegram_id: int) -> int:
