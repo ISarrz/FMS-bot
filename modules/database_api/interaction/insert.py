@@ -1,0 +1,90 @@
+import sqlite3
+
+from modules.files_api.paths import database_path
+from modules.database_api.dataclasses import Event, Group
+
+
+def insert_event(name: str, about: str, start: str, end: str, owner: str, place: str) -> int:
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+                    INSERT INTO events (name, about, start, end, owner, place)
+                    VALUES ({name}, {about}, {start}, {end}, {owner}, {place})
+                    """)
+
+        event_id = cur.lastrowid
+
+    return event_id
+
+
+def insert_class_event(event: Event):
+    insert_event(event.name, event.about, event.start, event.end, event.owner, event.place)
+
+
+def insert_user(telegram_id: int) -> int:
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+
+        cur.execute(f"""
+        INSERT INTO users (telegram_id) VALUES ({telegram_id})
+        """)
+
+        user_id = cur.lastrowid
+
+    return user_id
+
+
+def insert_group(name: str, about: str):
+    with sqlite3.connect('database.db') as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        INSERT INTO groups (name, about) VALUES ({name}, {about})
+        """)
+
+        group_id = cur.lastrowid
+
+    return group_id
+
+
+def insert_class_group(group: Group):
+    insert_group(group.name, group.about)
+
+
+def insert_groups_relation(parent_id, child_id):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        INSERT INTO groups_relations (parent_id, child_id) VALUES ({parent_id}, {child_id})
+        """)
+
+        relation_id = cur.lastrowid
+
+    return relation_id
+
+
+def insert_user_group(user_id, group_id):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        INSERT INTO users_groups (user_id, group_id) VALUES ({user_id}, {group_id})
+        """)
+
+        relation_id = cur.lastrowid
+
+    return relation_id
+
+
+def insert_group_event(group_id, event_id):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        INSERT INTO group_events (group_id, event_id) VALUES ({group_id}, {event_id})
+        """)
+
+        relation_id = cur.lastrowid
+
+    return relation_id
+
+
+if __name__ == '__main__':
+    pass
