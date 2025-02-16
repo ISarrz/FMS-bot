@@ -55,6 +55,17 @@ def fetch_all_events():
     return response
 
 
+def fetch_all_groups():
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+                           SELECT * FROM groups 
+                           """)
+
+        response = cur.fetchall()
+
+    return response
 def fetch_group_by_id(group_id: int):
     return fetch_by_id('groups', group_id)
 

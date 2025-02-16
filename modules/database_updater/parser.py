@@ -3,9 +3,12 @@ import os
 import openpyxl
 from modules.database_updater.patterns import find_pattern, groups_patterns
 from modules.database_updater.table import Table
-from modules.database_api import Group, Event
-from modules.database_api.interaction.fetch import *
-from modules.database_api.interaction.insert import *
+from modules.database_api import (
+    Event,
+    fetch_class_group_by_name,
+    insert_group_event,
+    insert_class_event
+)
 
 
 def parse_all():

@@ -9,5 +9,5 @@ def get_config():
     return response
 
 
-def get_config_fields(field):
+def get_config_field(field):
     return get_config()[field]

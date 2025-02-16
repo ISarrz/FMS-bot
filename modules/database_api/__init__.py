@@ -3,6 +3,10 @@ import modules.files_api.paths as pth
 
 from modules.database_api.service.dumps import *
 from modules.database_api.dataclasses import *
+from modules.database_api.interaction.fetch import *
+from modules.database_api.interaction.insert import *
+from modules.database_api.interaction.update import *
+from modules.database_api.interaction.delete import *
 
 with sqlite3.connect(pth.database_path) as conn:
     cur = conn.cursor()

@@ -3,7 +3,7 @@ from playwright.async_api import async_playwright, Page, expect
 from modules.time.dates import get_current_week, get_next_week
 from modules.files_api import (
     get_config,
-    get_config_fields
+    get_config_field
 )
 from modules.files_api import downloads_path, parsed_files_path
 import shutil
@@ -13,9 +13,9 @@ import os
 # playwright install firefox
 async def run(hide=True):
     async with async_playwright() as playwright:
-        site_address = get_config_fields('site_address')
-        user_login = get_config_fields('site_login')
-        user_password = get_config_fields('site_password')
+        site_address = get_config_field('site_address')
+        user_login = get_config_field('site_login')
+        user_password = get_config_field('site_password')
 
         browser = await playwright.firefox.launch(headless=hide)
         page = await browser.new_page()

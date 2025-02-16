@@ -1,14 +1,9 @@
-import asyncio
-from playwright.async_api import async_playwright, Page, expect
 from modules.time.dates import get_current_week, get_next_week
-from modules.files_api import (
-    get_config,
-    get_config_fields
-)
 from modules.files_api import downloads_path, parsed_files_path
-from modules.database_api.interaction.fetch import *
-from modules.database_api.interaction.delete import *
-import shutil
+from modules.database_api import (
+    fetch_all_events,
+    delete_event_by_id
+)
 import os
 
 
