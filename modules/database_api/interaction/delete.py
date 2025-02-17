@@ -41,3 +41,7 @@ def delete_groups_relation_by_groups_id(parent_id: int, child_id: int):
         cur.execute(f"""
                        DELETE FROM groups_relations WHERE parent_id = {parent_id} AND child_id = {child_id}
                        """)
+
+
+def delete_image_by_id(image_id: int):
+    delete_by_id('images', image_id)

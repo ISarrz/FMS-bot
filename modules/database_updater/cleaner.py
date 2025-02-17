@@ -2,7 +2,9 @@ from modules.time.dates import get_current_week, get_next_week
 from modules.files_api import downloads_path, parsed_files_path
 from modules.database_api import (
     fetch_all_events,
-    delete_event_by_id
+    delete_event_by_id,
+    fetch_all_images,
+    delete_image_by_id,
 )
 import os
 
@@ -24,6 +26,7 @@ def clean_files():
 
 def clean_database():
     clean_events()
+    clean_images()
 
 
 def clean_events():
@@ -33,3 +36,12 @@ def clean_events():
     for event in events:
         if event.date not in current_string_dates:
             delete_event_by_id(event.id)
+
+
+def clean_images():
+    current_dates = get_current_week() + get_next_week()
+    current_string_dates = [date.strftime('%d.%m') for date in current_dates]
+    images = fetch_all_images()
+    for image in images:
+        if image.date not in current_string_dates:
+            delete_image_by_id(image.id)

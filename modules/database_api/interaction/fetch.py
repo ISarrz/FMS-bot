@@ -103,6 +103,7 @@ def fetch_group_by_name(name: str):
 
 def fetch_parent_by_id(child_id: int):
     with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute(f"""
         SELECT groups.id, groups.name, groups.about FROM groups_relations JOIN groups ON groups_relations.parent_id = groups.id 
@@ -113,8 +114,10 @@ def fetch_parent_by_id(child_id: int):
 
     return response
 
+
 def fetch_child_by_id(parent_id: int):
     with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute(f"""
         SELECT groups.id, groups.name, groups.about FROM groups_relations JOIN groups ON groups_relations.child_id = groups.id 
@@ -150,6 +153,46 @@ def fetch_class_user_by_id(user_id: int):
     user = DbUser(id=response['id'], telegram_id=response['telegram_id'])
 
     return user
+
+
+def fetch_image_by_date_and_group_id(date: str, group_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT image FROM images WHERE date = '{date}' AND group_id = {group_id}
+        """)
+
+        response = cur.fetchone()['image']
+
+    return response
+
+
+def fetch_all_images():
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("""
+        SELECT * from images 
+        """)
+
+        response = cur.fetchall()
+
+    return response
+
+
+def fetch_group_events_by_group_id_and_date(group_id: int, date: str):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT * FROM events JOIN groups_events ON groups_events.event_id = events.id
+        WHERE groups_events.group_id = {group_id} AND events.date = '{date}' 
+    """)
+
+        response = cur.fetchall()
+
+    return response
 
 
 if __name__ == '__main__':

@@ -88,5 +88,17 @@ def insert_group_event(group_id, event_id):
     return relation_id
 
 
+def insert_image(image, date: str, group_id: int):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        INSERT INTO images (image, date, group_id) VALUES ({image}, '{date}',{group_id})
+        """)
+
+        relation_id = cur.lastrowid
+
+    return relation_id
+
+
 if __name__ == '__main__':
     pass

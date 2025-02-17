@@ -20,3 +20,9 @@ scripts_path = os.path.join(project_path, "scripts")
 
 downloads_path = os.path.join(database_updater_path, "downloads")
 parsed_files_path = os.path.join(database_updater_path, "parsed_files")
+
+
+images_updater_path = os.path.join(modules_path, "images_updater")
+render_path = os.path.join(images_updater_path, "render")
+templates_path = os.path.join(render_path, "templates")
+fonts_path = os.path.join(images_updater_path, "fonts")

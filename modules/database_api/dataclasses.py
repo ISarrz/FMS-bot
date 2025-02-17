@@ -27,4 +27,4 @@ class Group:
 
 @dataclass
 class DbGroup(Group):
-    id: str
+    id: int

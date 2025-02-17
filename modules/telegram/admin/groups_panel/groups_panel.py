@@ -138,7 +138,7 @@ async def edit_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
         insert_groups_relation(int(parent_id), int(child_id))
 
     elif "del " in income:
-        income = income.replace("dell ", "")
+        income = income.replace("del ", "")
         parent_id, child_id = income.split(" ")
         delete_groups_relation_by_groups_id(int(parent_id), int(child_id))
 

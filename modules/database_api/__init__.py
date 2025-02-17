@@ -57,4 +57,12 @@ with sqlite3.connect(pth.database_path) as conn:
         group_id INTEGER REFERENCES groups
         )""")
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        image BLOB,
+        date TEXT,
+        group_id INTEGER REFERENCES groups
+        )""")
+
     print("Database initialized")

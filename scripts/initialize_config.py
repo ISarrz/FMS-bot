@@ -5,11 +5,10 @@ import modules.database_api
 
 def initialize_config():
     config = {
-        "telegram_api_key": input("Enter Telegram API key: "),
+        "telegram_api_token": input("Enter Telegram API token: "),
         "site_address": input("Enter site address: "),
         "site_login": input("Enter site login: "),
         "site_password": input("Enter site password: "),
-        "telegram_api_token": input("Enter Telegram API token: "),
         "admin_chat_id": int(input("Enter admin chat_id: "))
     }
 
