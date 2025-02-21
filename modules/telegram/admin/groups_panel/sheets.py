@@ -24,12 +24,7 @@ from telegram.ext import (
     filters
 )
 from modules.files_api import get_config_field
-from modules.database_api import (
-    DbGroup,
-    fetch_all_groups,
-    fetch_group_by_id
-)
-
+from modules.database_api import *
 
 async def get_sheets(update: Update, context: ContextTypes.DEFAULT_TYPE):
     groups = [DbGroup(id=group['id'], name=group['name'], about=group['about']) for group in fetch_all_groups()]
@@ -44,20 +39,21 @@ async def get_sheets(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return sheets
 
 
-
 async def get_reply_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    sheets= await get_sheets(update, context)
+    sheets = await get_sheets(update, context)
     cur_sheet = sheets[context.chat_data['sheet']]
 
     keyboard = []
 
     for group in cur_sheet:
-        keyboard.append([InlineKeyboardButton(text=group.name, callback_data=group.id)])
+        parent = fetch_parent_by_id(group.id)
+        parent_info = f" ('{parent['id']}' {parent['name']})" if parent else ""
+        keyboard.append([InlineKeyboardButton(text=f"{group.name}{parent_info}", callback_data=group.id)])
 
     if len(sheets) > 1:
-        navigation = [InlineKeyboardButton(text='<-', callback_data='<-'),
+        navigation = [InlineKeyboardButton(text='←', callback_data='<-'),
                       InlineKeyboardButton(text='+', callback_data='+'),
-                      InlineKeyboardButton(text='->', callback_data='->'),
+                      InlineKeyboardButton(text='→', callback_data='->'),
                       ]
 
     else:

@@ -1,32 +1,27 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from modules.images_updater.style import *
-from dataclasses import dataclass
-from modules.images_updater.container import *
-
-@dataclass
-class Pixel:
-    x: int = 0
-    y: int = 0
-    width: int = 20
-    height: int = 20
 
 
 class Cell:
-    def __init__(self, row: int, col: int,
-
-                 text="", cell_style=CellStyle(TextStyle(ImageFont.load_default(20)))):
-        self.row = row
-        self.col = col
-        self.pixel = Pixel()
-        self.container = Container()
-
+    def __init__(self, cords: (int, int), text="", cell_style=CellStyle(TextStyle(ImageFont.load_default(20)))):
+        self.coords = cords
+        self.width = 1
+        self.height = 1
+        self.text_width = 1
+        self.text_height = 1
         self.xy1 = (0, 0)
         self.xy2 = (0, 0)
         # self.center = (0, 0)
+        self.pixel_width = 20
+        self.pixel_height = 20
         self.style = cell_style
         self.lines = []
         self.text = text
 
+        self.parent = None
+        self.unite = False
+        self.right_bottom = self.coords
+        self.left_top = self.coords
 
         self.set_text(text)
         self.set_minimal_size()
@@ -71,10 +66,6 @@ class Cell:
         self.lines = [[i, self.style.text_style] for i in self.lines]
         self._calc_text_size()
         return self
-
-    @property
-    def cords(self):
-        return self.row, self.col
 
     def set_parent(self, parent):
         self.parent = parent

@@ -22,7 +22,9 @@ colors = {
     'discord4': '#1e2124'
 }
 
-header_font = load_font("Riffic Bold", 60)
+header_font = load_font("Roboto Black", 60)
+# header_font = load_font("Roboto Slab Bold", 60)
+# header_font = load_font("Roboto Condensed Bold", 60)
 header_text = TextStyle(header_font, color=colors['white'], alignment='center', spacing=0)
 header_style = CellStyle(fill=colors['discord4'], padding=5, outline_color=colors['discord4'], line_width=14,
                          text_style=header_text)
@@ -32,24 +34,25 @@ class_text = TextStyle(class_font, color=colors['white'], alignment='center', sp
 class_style = CellStyle(fill=colors['discord4'], padding=5, outline_color=colors['discord3'], line_width=14,
                         text_style=header_text)
 
-date_font = load_font("Riffic Bold", 50)
+date_font = load_font("Roboto Black", 50)
 date_text = TextStyle(date_font, color=colors['white'], alignment='center', spacing=0)
-date_style = CellStyle(fill=colors['discord4'], padding=0, outline_color=colors['discord4'], line_width=14,
+date_style = CellStyle(fill=colors['discord4'], padding=10, outline_color=colors['discord4'], line_width=0,
                        text_style=date_text)
 
-main_font = load_font("Nunito Black", 34)
+main_font = load_font("Roboto Bold", 34)
+# main_font = load_font("Nunito Black", 34)
 main_text = TextStyle(main_font, color=colors['white'], alignment='center', spacing=2)
 
 main_style = CellStyle(fill=colors['discord1'], padding=10, outline_color=colors['discord3'], line_width=10,
                        text_style=main_text, minimum_height=150)
 
-time_font = load_font("Nunito Black", 34)
+time_font = load_font("Roboto Bold", 34)
 time_text = TextStyle(time_font, color=colors['discord1'], alignment='center', spacing=0)
 
 time_style = CellStyle(fill=colors['discord4'], padding=2, outline_color=colors['discord4'], line_width=1,
                        text_style=time_text, minimum_height=150)
 
-numbers_font = load_font("Nunito Black", 50)
+numbers_font = load_font("Roboto Black", 50)
 numbers_text = TextStyle(numbers_font, color=colors['white'], alignment='center', spacing=0)
 
 numbers_style = CellStyle(fill=colors['discord4'], padding=-30, outline_color=colors['discord4'], line_width=1,

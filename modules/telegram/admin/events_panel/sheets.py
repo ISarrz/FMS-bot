@@ -74,9 +74,9 @@ async def get_reply_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     callback_data=event.id)])
 
     if len(sheets) > 1:
-        navigation = [InlineKeyboardButton(text='<-', callback_data='<-'),
+        navigation = [InlineKeyboardButton(text='←', callback_data='<-'),
                       InlineKeyboardButton(text='+', callback_data='+'),
-                      InlineKeyboardButton(text='->', callback_data='->'),
+                      InlineKeyboardButton(text='→', callback_data='->'),
                       ]
 
     else:

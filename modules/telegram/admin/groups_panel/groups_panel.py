@@ -45,7 +45,7 @@ async def update_overview(update: Update, context: ContextTypes.DEFAULT_TYPE, qu
     reply_markup = await get_reply_markup(update, context)
 
     await query.edit_message_text(
-        text=f"Groups №{context.chat_data['sheet']}",
+        text=f"Groups №{context.chat_data['sheet'] + 1}",
         reply_markup=reply_markup
     )
 

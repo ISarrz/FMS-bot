@@ -18,9 +18,9 @@ def insert_event(name: str, about: str, date: str, start: str, end: str, owner: 
 
 
 def insert_class_event(event: Event):
-    insert_event(name=event.name, about=event.about, date=event.date,
-                 start=event.start, end=event.end, owner=event.owner,
-                 place=event.place)
+    return insert_event(name=event.name, about=event.about, date=event.date,
+                        start=event.start, end=event.end, owner=event.owner,
+                        place=event.place)
 
 
 def insert_user(telegram_id: int) -> int:
@@ -92,8 +92,8 @@ def insert_image(image, date: str, group_id: int):
     with sqlite3.connect(database_path) as conn:
         cur = conn.cursor()
         cur.execute(f"""
-        INSERT INTO images (image, date, group_id) VALUES ({image}, '{date}',{group_id})
-        """)
+        INSERT INTO images (image, date, group_id) VALUES (?, ?,?)
+        """, (image, date, group_id,))
 
         relation_id = cur.lastrowid
 

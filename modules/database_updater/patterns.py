@@ -65,3 +65,8 @@ def find_pattern(text, patterns):
             return pattern[0]
 
     return None
+
+
+if __name__ == "__main__":
+    for i in groups_patterns:
+        print(i[0])

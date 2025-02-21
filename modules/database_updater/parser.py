@@ -3,12 +3,7 @@ import os
 import openpyxl
 from modules.database_updater.patterns import find_pattern, groups_patterns
 from modules.database_updater.table import Table
-from modules.database_api import (
-    Event,
-    fetch_class_group_by_name,
-    insert_group_event,
-    insert_class_event
-)
+from modules.database_api import *
 
 
 def parse_all():
@@ -32,13 +27,15 @@ def parse_file(file_name):
                 for event in events:
                     event.date = date
 
+            insert_into_database(groups_sequences)
+
     os.replace(download_path, parsed_path)
 
 
 def parse_sheet(sheet):
     table = Table(sheet)
-    group_name = find_pattern(sheet.title, groups_patterns)
-    group = fetch_class_group_by_name(group_name)
+    parent_group_name = find_pattern(sheet.title, groups_patterns)
+    parent_group = fetch_class_group_by_name(parent_group_name)
     groups_sequences = []
 
     # finding lessons number and time column
@@ -49,14 +46,18 @@ def parse_sheet(sheet):
         for col in range(table.width):
             if find_pattern(table.matrix[row][col], groups_patterns):
                 groups, events = get_sequence(table, lesson_number_col, time_col, row, col)
-                groups.insert(0, group)
-                groups_sequences.append((groups, events))
+                if (groups, events) not in groups_sequences:
+                    groups_sequences.append((groups, events))
 
     return groups_sequences
 
 
 def get_sequence(table, lesson_number_col, time_col, row, col):
     groups = []
+    group_name = find_pattern(table.matrix[row][col], groups_patterns)
+    fetch_class_group_by_name(group_name)
+    groups.append(fetch_class_group_by_name(group_name))
+    row += 1
     events = []
     while row < table.height:
         if table.matrix[row][lesson_number_col] == "None":
@@ -65,7 +66,12 @@ def get_sequence(table, lesson_number_col, time_col, row, col):
         group_name = find_pattern(table.matrix[row][col], groups_patterns)
 
         if group_name is not None:
-            groups.append(fetch_class_group_by_name(group_name))
+            if len(groups) == 0:
+                groups.append(fetch_class_group_by_name(group_name))
+            else:
+                parent_id = groups[-1].id
+                group = fetch_group_by_name_and_parent_id(group_name, parent_id)
+                groups.append(DbGroup(id=group['id'], name=group['name'], about=group['about']))
 
         else:
             time = table.matrix[row][time_col]
@@ -86,8 +92,9 @@ def parse_event(time, value):
     lines = value.split("\n")
     name = lines[0]
     owner = "\n".join(lines[1:-1]) if lines[1:-1] else "None"
+    about = value
     place = lines[-1]
-    event = Event(name=name, about="None", date="None", start=start, end=end, owner=owner, place=place)
+    event = Event(name=name, about=about, date="None", start=start, end=end, owner=owner, place=place)
     return event
 
 

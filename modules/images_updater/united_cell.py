@@ -1,5 +1,5 @@
 from PIL import ImageDraw
-from .cell import Cell
+from modules.images_updater.cell import *
 
 
 class UnitedCell(Cell):
@@ -25,12 +25,10 @@ class UnitedCell(Cell):
         self.parent = parent
         self.value = value if not self.parent else None
 
-    @property
-    def value(self):
+    def get_value(self):
         return self.value if not self.parent else self.parent.value
 
-    @value.setter
-    def value(self, value):
+    def set_value(self, value):
         if self.parent:
             self.parent.value = value
         else:

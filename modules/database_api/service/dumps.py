@@ -24,4 +24,5 @@ def load_dump(dump_name="database_dump.db"):
 
 
 if __name__ == "__main__":
-    save_dump()
+    # save_dump()
+    load_dump()

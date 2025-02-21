@@ -1,7 +1,8 @@
-from .style import CellStyle
-from .cell import *
+from modules.images_updater.style import *
+from modules.images_updater.constants import *
+from modules.images_updater.cell import *
 
-im = Image.new('RGB', (500, 500), '#FFFFFF')
+im = Image.new('RGB', (500, 500), colors['white'])
 draw = ImageDraw.Draw(im)
 
 
@@ -9,6 +10,13 @@ class Table:
     """Allows you to create graphical tables with Pillow"""
 
     def __init__(self, matrix: list[list[str]], cell_style=CellStyle(ImageFont.load_default(20))):
+        """
+        You can initialize table with values matrix or create an empty table of specified size
+
+        Args:
+            matrix (list[list[str]]): Matrix with values.
+            cell_style (CellStyle): Default cell style.
+        """
 
         self.columns_width = []
         self.rows_height = []
@@ -163,9 +171,9 @@ class Table:
         canvas_width = table_width + margin * 2
         canvas_height = table_height + margin * 2
 
-        image1 = Image.new('RGB', (canvas_width, canvas_height), '#1e2124')
+        image1 = Image.new('RGB', (canvas_width, canvas_height), colors['discord4'])
 
-        image2 = Image.new('RGB', (table_width, table_height), '#1e2124')
+        image2 = Image.new('RGB', (table_width, table_height), colors['discord4'])
         table = ImageDraw.Draw(image2)
 
         for row in range(self.height):

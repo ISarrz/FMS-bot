@@ -33,6 +33,14 @@ def delete_group_event_by_group_and_event_id(group_id: int, event_id: int):
                        DELETE FROM groups_events WHERE group_id = {group_id} AND event_id = {event_id}
                        """)
 
+def delete_group_event_by_event_id(event_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        DELETE FROM groups_events WHERE event_id = {event_id}
+    """)
+
 
 def delete_groups_relation_by_groups_id(parent_id: int, child_id: int):
     with sqlite3.connect(database_path) as conn:
