@@ -46,9 +46,16 @@ async def get_reply_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = []
 
     for group in cur_sheet:
-        parent = fetch_parent_by_id(group.id)
-        parent_info = f" ('{parent['id']}' {parent['name']})" if parent else ""
-        keyboard.append([InlineKeyboardButton(text=f"{group.name}{parent_info}", callback_data=group.id)])
+        parents = fetch_groups_sequence(group.id)
+
+        if len(parents) > 1:
+            parents = parents[1:]
+            parents_info = '; '.join([f"({i['id']}) {i['name']}" for i in parents])
+
+        else:
+            parents_info = ""
+
+        keyboard.append([InlineKeyboardButton(text=f"{group.name} | {parents_info}", callback_data=group.id)])
 
     if len(sheets) > 1:
         navigation = [InlineKeyboardButton(text='←', callback_data='<-'),

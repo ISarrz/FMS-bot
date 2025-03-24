@@ -10,22 +10,9 @@ from telegram.ext import (
     filters
 )
 
-from modules.database_api.interaction.delete import delete_event_by_id
-from modules.database_api.interaction.fetch import fetch_event_by_id
-from modules.database_api.interaction.insert import insert_event
 from modules.files_api import get_config_field
 from modules.telegram.admin.events_panel.sheets import *
-from modules.database_api import (
-    DbGroup,
-    insert_group,
-    update_group_by_id,
-    delete_group_by_id,
-    delete_group_by_id,
-    update_event_by_id,
-    delete_group_event_by_group_and_event_id,
-    insert_group_event
-
-)
+from modules.database_api import *
 
 ADMIN_CHAT_ID = get_config_field("admin_chat_id")
 

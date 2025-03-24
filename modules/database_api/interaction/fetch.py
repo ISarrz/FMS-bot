@@ -162,6 +162,52 @@ def fetch_user_by_id(user_id: int):
     return fetch_by_id('users', user_id)
 
 
+def fetch_user_by_telegram_id(telegram_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+           SELECT * FROM users WHERE telegram_id = {telegram_id}
+           """)
+
+        response = cur.fetchone()
+
+    return response
+
+
+def fetch_user_groups_by_id(user_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT * FROM groups JOIN users_groups ON groups.id = users_groups.group_id 
+        WHERE users_groups.user_id = {user_id}
+    """)
+        response = cur.fetchall()
+
+    return response
+
+
+def fetch_groups_sequence(child_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        response = [fetch_group_by_id(child_id)]
+        while True:
+            cur.execute(f"""
+            SELECT * FROM groups_relations WHERE child_id = {child_id}
+            """)
+
+            cur_response = cur.fetchone()
+            if cur_response is None:
+                break
+
+            child_id = cur_response['parent_id']
+            response.append(fetch_group_by_id(child_id))
+
+        return response
+
+
 def fetch_class_user_by_id(user_id: int):
     response = fetch_user_by_id(user_id)
     user = DbUser(id=response['id'], telegram_id=response['telegram_id'])
