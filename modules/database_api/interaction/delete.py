@@ -1,6 +1,7 @@
 import sqlite3
 
 from modules.database_api import DbGroup, DbEvent, DbUser
+from modules.database_api.interaction.fetch import *
 from modules.files_api.paths import database_path
 
 
@@ -25,6 +26,39 @@ def delete_group_by_id(group_id: int):
     delete_by_id('groups', group_id)
 
 
+def delete_group_events_by_id(group_id: int):
+    for event in fetch_group_events_by_id(group_id):
+        delete_by_id('events', event['id'])
+
+
+def delete_group_and_relations_by_id(group_id: int):
+    while fetch_child_by_id(group_id):
+        child = fetch_child_by_id(group_id)
+        delete_group_and_relations_by_id(child['id'])
+
+    parent = fetch_parent_by_id(group_id)
+    delete_groups_relation_by_groups_id(parent['id'], group_id)
+    delete_group_events_by_id(group_id)
+    delete_by_id('groups', group_id)
+
+
+def delete_user_group(user_id: int, group_id):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+                    DELETE FROM users_groups WHERE user_id = {user_id} AND group_id = {group_id}
+                     """)
+
+
+def delete_user_group_and_relations(user_id: int, group_id: int):
+    child = fetch_user_groups_by_parent_group_id(user_id, group_id)
+
+    for group in child:
+        delete_user_group_and_relations(user_id, group['id'])
+
+    delete_user_group(user_id, group_id)
+
+
 def delete_group_event_by_group_and_event_id(group_id: int, event_id: int):
     with sqlite3.connect(database_path) as conn:
         conn.row_factory = sqlite3.Row
@@ -32,6 +66,7 @@ def delete_group_event_by_group_and_event_id(group_id: int, event_id: int):
         cur.execute(f"""
                        DELETE FROM groups_events WHERE group_id = {group_id} AND event_id = {event_id}
                        """)
+
 
 def delete_group_event_by_event_id(event_id: int):
     with sqlite3.connect(database_path) as conn:

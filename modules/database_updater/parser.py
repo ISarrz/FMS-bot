@@ -34,8 +34,8 @@ def parse_file(file_name):
 
 def parse_sheet(sheet):
     table = Table(sheet)
-    parent_group_name = find_pattern(sheet.title, groups_patterns)
-    parent_group = fetch_class_group_by_name(parent_group_name)
+    # parent_group_name = find_pattern(sheet.title, groups_patterns)
+    # parent_group = fetch_class_group_by_name(parent_group_name)
     groups_sequences = []
 
     # finding lessons number and time column

@@ -34,3 +34,11 @@ def update_event_by_id(event_id: int, name: str, about: str, date: str, start: s
         date = '{date}', start = '{start}', end = '{end}', owner = '{owner}', place = '{place}'
         WHERE id = {event_id}
         """)
+
+
+def update_notifications_by_id(user_id: int, value:int):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        UPDATE main.users_notifications set value = {value} WHERE user_id = {user_id}
+        """)

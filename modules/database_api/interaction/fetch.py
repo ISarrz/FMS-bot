@@ -24,7 +24,7 @@ def fetch_event_by_id(event_id: int):
 def fetch_class_event_by_id(event_id: int):
     response = fetch_event_by_id(event_id)
     event = DbEvent(id=response['id'], name=response['name'], about=response['about'], start=response['start'],
-                    end=response['end'], owner=response['owner'], place=response['place'])
+                    end=response['end'], owner=response['owner'], place=response['place'], date=response['date'])
 
     return event
 
@@ -115,6 +115,14 @@ def fetch_parent_by_id(child_id: int):
     return response
 
 
+def fetch_class_parent_by_id(child_id: int):
+    fetch_parent = fetch_parent_by_id(child_id)
+    if fetch_parent:
+        return DbGroup(id=fetch_parent['id'], name=fetch_parent['name'], about=fetch_parent['about'])
+
+    return None
+
+
 def fetch_child_by_id(parent_id: int):
     with sqlite3.connect(database_path) as conn:
         conn.row_factory = sqlite3.Row
@@ -127,6 +135,24 @@ def fetch_child_by_id(parent_id: int):
         response = cur.fetchone()
 
     return response
+
+
+def fetch_all_class_child_by_id(parent_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+                SELECT groups.id, groups.name, groups.about FROM groups_relations JOIN groups ON groups_relations.child_id = groups.id 
+                WHERE groups_relations.parent_id = {parent_id}
+                """)
+        response = cur.fetchall()
+
+    result = []
+    for group in response:
+        db_group = DbGroup(id=group['id'], name=group['name'], about=group['about'])
+        result.append(db_group)
+
+    return result
 
 
 def fetch_class_group_by_name(name: str):
@@ -215,6 +241,29 @@ def fetch_class_user_by_id(user_id: int):
     return user
 
 
+def fetch_user_groups_by_parent_group_id(user_id: int, parent_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT * FROM groups JOIN users_groups  ON groups.id = users_groups.group_id 
+        JOIN groups_relations ON groups.id = groups_relations.child_id 
+         
+         WHERE groups_relations.parent_id = {parent_id} AND user_id = {user_id}
+        """)
+
+        response = cur.fetchall()
+
+    return response
+
+
+def fetch_class_user_by_telegram_id(telegram_id: int):
+    response = fetch_user_by_telegram_id(telegram_id)
+    user = DbUser(id=response['id'], telegram_id=response['telegram_id'])
+
+    return user
+
+
 def fetch_image_by_date_and_group_id(date: str, group_id: int):
     with sqlite3.connect(database_path) as conn:
         conn.row_factory = sqlite3.Row
@@ -223,7 +272,8 @@ def fetch_image_by_date_and_group_id(date: str, group_id: int):
         SELECT image FROM images WHERE date = '{date}' AND group_id = {group_id}
         """)
 
-        response = cur.fetchone()['image']
+        response = cur.fetchone()
+        response = response.get('image') if response else None
 
     return response
 
@@ -235,6 +285,20 @@ def fetch_all_images():
         cur.execute("""
         SELECT * from images 
         """)
+
+        response = cur.fetchall()
+
+    return response
+
+
+def fetch_group_events_by_id(group_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT * FROM events JOIN groups_events ON groups_events.event_id = events.id
+        WHERE groups_events.group_id = {group_id} 
+    """)
 
         response = cur.fetchall()
 
@@ -255,6 +319,19 @@ def fetch_group_events_by_group_id_and_date(group_id: int, date: str):
     return response
 
 
+def fetch_user_notifications(user_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT value FROM users_notifications WHERE user_id = {user_id}
+        """)
+
+        response = cur.fetchone()
+
+        return response
+
+
 if __name__ == '__main__':
-    res = fetch_class_group_by_name("Группа А")
+    res = fetch_class_parent_by_id(2)
     pass

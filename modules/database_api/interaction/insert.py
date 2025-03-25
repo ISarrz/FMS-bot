@@ -100,5 +100,17 @@ def insert_image(image, date: str, group_id: int):
     return relation_id
 
 
+def insert_user_notifications_by_id(user_id: int):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        INSERT INTO users_notifications (user_id, value) VALUES (?, ?)
+        """, (user_id, 0))
+
+    relation_id = cur.lastrowid
+
+    return relation_id
+
+
 if __name__ == '__main__':
     pass
