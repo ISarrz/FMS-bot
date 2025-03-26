@@ -1,13 +1,42 @@
-from telegram import *
-from telegram.ext import *
-from modules.telegram import ConversationHandler_admin_panel
-from modules.telegram.settings.settings_menu import ConversationHandler_settings
-from modules.telegram.timetable.timetable_menu import ConversationHandler_timetable
 from modules.database_api import *
 from modules.files_api import text_reader
 from modules.files_api import *
 from modules.time.dates import *
 from modules.logger.logger import *
+from modules.telegram_int.admin.admin_panel import ConversationHandler_admin_panel
+from modules.telegram_int.settings.settings_menu import ConversationHandler_settings
+from modules.telegram_int.timetable.timetable_menu import ConversationHandler_timetable
+
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
+from telegram.ext import (
+    ContextTypes,
+    CallbackQueryHandler,
+    ApplicationBuilder
+)
+from telegram.ext import (
+    ContextTypes,
+    ConversationHandler,
+    CommandHandler,
+    CallbackQueryHandler,
+
+    MessageHandler,
+    filters,
+
+)
+from telegram.ext import (
+    CallbackContext,
+    ContextTypes,
+    ConversationHandler,
+    CommandHandler,
+    CallbackQueryHandler,
+    MessageHandler,
+    filters
+)
+
 
 async def send_logs(context: CallbackContext):
     logs_chat_id = get_config_field('logs_chat_id')

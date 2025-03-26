@@ -3,3 +3,6 @@ openpyxl
 pytest-playwright
 python-telegram-bot
 python-telegram-bot[job-queue]
+schedule
+pytz
+pillow

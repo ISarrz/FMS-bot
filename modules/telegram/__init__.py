@@ -1,2 +1,0 @@
-
-from modules.telegram.admin.admin_panel import ConversationHandler_admin_panel

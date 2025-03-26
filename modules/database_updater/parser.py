@@ -4,7 +4,7 @@ import openpyxl
 from modules.database_updater.patterns import find_pattern, groups_patterns
 from modules.database_updater.table import Table
 from modules.database_api import *
-from modules.logger import *
+from modules.logger.logger import logger, async_logger
 
 
 @logger

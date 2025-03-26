@@ -1,8 +1,0 @@
-LEFT_ARROW = "←"
-RIGHT_ARROW = "→"
-BACK_ARROW = "↵"
-ADD = "+"
-EDIT  = "edit"
-DELETE = "❌"
-SUBMIT = "🗸"
-CANCEL = "⨯"

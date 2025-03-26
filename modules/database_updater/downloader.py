@@ -8,7 +8,7 @@ from modules.files_api import (
 from modules.files_api import downloads_path, parsed_files_path
 import shutil
 import os
-from modules.logger import *
+from modules.logger.logger import async_logger, logger
 
 
 # playwright install firefox

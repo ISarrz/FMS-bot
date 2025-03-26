@@ -8,7 +8,7 @@ from modules.images_updater.style import *
 from modules.images_updater.table_parts import *
 import datetime as dt
 from modules.files_api import *
-from modules.logger import *
+from modules.logger.logger import logger, async_logger
 
 
 @logger

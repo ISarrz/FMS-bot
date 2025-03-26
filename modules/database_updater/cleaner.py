@@ -2,7 +2,7 @@ from modules.time.dates import get_current_week, get_next_week, get_current_stri
 from modules.files_api import downloads_path, parsed_files_path
 from modules.database_api import *
 import os
-from modules.logger import *
+from modules.logger.logger import logger, async_logger
 
 
 @logger
