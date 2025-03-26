@@ -27,8 +27,10 @@ from modules.files_api import get_config_field
 from modules.database_api import *
 from modules.time import *
 from modules.telegram.admin.symbols import *
+from modules.logger import *
 
 
+@async_logger
 async def update_dates_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     sheet = await get_dates_menu_sheet(update, context)
     context.chat_data['group'] = 1
@@ -74,6 +76,7 @@ async def get_dates_menu_sheets(update: Update, context: ContextTypes.DEFAULT_TY
     return sheets
 
 
+@async_logger
 async def update_events_groups_mode_menu(update: Update, context: ContextTypes.DEFAULT_TYPE,
                                          query: CallbackQueryHandler):
     group_id = context.chat_data['group']
@@ -84,6 +87,7 @@ async def update_events_groups_mode_menu(update: Update, context: ContextTypes.D
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
 
+@async_logger
 async def send_events_groups_mode_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     group_id = context.chat_data['group']
     group = fetch_class_group_by_id(group_id)
@@ -135,6 +139,7 @@ async def get_events_groups_mode_menu_sheets(update: Update, context: ContextTyp
     return sheets
 
 
+@async_logger
 async def update_events_events_mode_menu(update: Update, context: ContextTypes.DEFAULT_TYPE,
                                          query: CallbackQueryHandler):
     group_id = context.chat_data['group']
@@ -145,6 +150,7 @@ async def update_events_events_mode_menu(update: Update, context: ContextTypes.D
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
 
+@async_logger
 async def send_events_events_mode_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     group_id = context.chat_data['group']
     group = fetch_class_group_by_id(group_id)
@@ -204,6 +210,7 @@ async def get_events_events_mode_menu_sheets(update: Update, context: ContextTyp
     return sheets
 
 
+@async_logger
 async def update_add_event_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     sheet = await get_add_event_menu_sheet(update, context)
 
@@ -224,6 +231,7 @@ async def get_add_event_menu_sheet(update: Update, context: ContextTypes.DEFAULT
     return {"text": text, "reply_markup": None}
 
 
+@async_logger
 async def add_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     income = update.message.text
     if income != "cancel":
@@ -249,6 +257,7 @@ async def add_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return 7
 
 
+@async_logger
 async def send_edit_event_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sheet = await get_edit_event_menu_sheet(update, context)
     context.chat_data['sheet'] = 0
@@ -256,6 +265,7 @@ async def send_edit_event_menu(update: Update, context: ContextTypes.DEFAULT_TYP
     await update.message.reply_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
 
+@async_logger
 async def update_edit_event_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     sheet = await get_edit_event_menu_sheet(update, context)
 
@@ -268,8 +278,8 @@ async def get_edit_event_menu_sheet(update: Update, context: ContextTypes.DEFAUL
     keyboard = []
 
     keyboard.append([InlineKeyboardButton(text=f"name: {event.name}", callback_data="name")])
-    keyboard.append([ InlineKeyboardButton(text=f"start: {event.start}", callback_data="start")])
-    keyboard.append([ InlineKeyboardButton(text=f"end: {event.end}", callback_data="end")])
+    keyboard.append([InlineKeyboardButton(text=f"start: {event.start}", callback_data="start")])
+    keyboard.append([InlineKeyboardButton(text=f"end: {event.end}", callback_data="end")])
     keyboard.append([InlineKeyboardButton(text=f"owner: {event.owner}", callback_data="owner")])
     keyboard.append([InlineKeyboardButton(text=f"place: {event.place}", callback_data="place")])
     keyboard.append([InlineKeyboardButton(text=f"date: {event.date}", callback_data="date")])
@@ -283,6 +293,7 @@ async def get_edit_event_menu_sheet(update: Update, context: ContextTypes.DEFAUL
     return {"text": f"Редактирование события: {event.name}", "reply_markup": reply_markup}
 
 
+@async_logger
 async def edit_event_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -302,6 +313,7 @@ async def edit_event_menu_response(update: Update, context: ContextTypes.DEFAULT
     return 10
 
 
+@async_logger
 async def update_edit_event_field_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     text = ("Введите данные\n"
             "Или отмените действие: cancel")
@@ -310,6 +322,7 @@ async def update_edit_event_field_menu(update: Update, context: ContextTypes.DEF
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
 
+@async_logger
 async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     income = update.message.text
     event_id = int(context.chat_data['event'])
@@ -340,10 +353,17 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     update_event_by_id(event_id=event.id, name=event.name,
                        about=event.about, date=event.date, start=event.start,
                        end=event.end, owner=event.owner, place=event.place)
+
+    date = context.chat_data['date']
+    group_id = context.chat_data['group']
+    group = fetch_class_group_by_id(group_id)
+    delete_image_by_date_and_group_id(date, group_id)
+    delete_user_updates_by_date_and_group_id(date, group.id)
     await send_edit_event_menu(update, context)
     return 9
 
 
+@async_logger
 async def update_delete_event_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     event_id = int(context.chat_data['event'])
     event = fetch_class_event_by_id(event_id)
@@ -360,16 +380,20 @@ async def update_delete_event_menu(update: Update, context: ContextTypes.DEFAULT
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
 
+@async_logger
 async def delete_event_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     income = query.data
     event_id = int(context.chat_data['event'])
     parent_id = int(context.chat_data['group'])
-
+    date = context.chat_data['date']
+    group = fetch_class_group_by_id(parent_id)
     if income == SUBMIT:
         delete_group_event_by_event_id(event_id)
         delete_event_by_id(event_id)
+        delete_image_by_date_and_group_id(date, group.id)
+        delete_user_updates_by_date_and_group_id(date, group.id)
 
         context.chat_data['sheet'] = 0
         await update_events_events_mode_menu(update, context, query)
@@ -379,5 +403,3 @@ async def delete_event_response(update: Update, context: ContextTypes.DEFAULT_TY
         context.chat_data['sheet'] = 0
         await update_edit_event_menu(update, context, query)
         return 9
-
-

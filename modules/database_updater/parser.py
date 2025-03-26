@@ -4,8 +4,10 @@ import openpyxl
 from modules.database_updater.patterns import find_pattern, groups_patterns
 from modules.database_updater.table import Table
 from modules.database_api import *
+from modules.logger import *
 
 
+@logger
 def parse_all():
     for file_name in os.listdir(downloads_path):
         parse_file(file_name)
@@ -45,19 +47,26 @@ def parse_sheet(sheet):
     for row in range(table.height):
         for col in range(table.width):
             if find_pattern(table.matrix[row][col], groups_patterns):
-                groups, events = get_sequence(table, lesson_number_col, time_col, row, col)
+                groups, events = get_sequence(table, sheet, lesson_number_col, time_col, row, col)
                 if (groups, events) not in groups_sequences:
                     groups_sequences.append((groups, events))
 
     return groups_sequences
 
 
-def get_sequence(table, lesson_number_col, time_col, row, col):
-    groups = []
+def get_sequence(table, sheet, lesson_number_col, time_col, row, col):
+    school_group = 'ФМШ'
+    sheet_group = find_pattern(sheet.title, groups_patterns)
+    groups = [
+        fetch_class_group_by_name(school_group),
+        fetch_class_group_by_name(sheet_group)
+    ]
     group_name = find_pattern(table.matrix[row][col], groups_patterns)
-    fetch_class_group_by_name(group_name)
-    groups.append(fetch_class_group_by_name(group_name))
-    row += 1
+
+    if 'группа' in group_name:
+        gr = fetch_group_by_name_and_parent_id("Академическая группа", groups[-1].id)
+        groups.append(fetch_class_group_by_id(gr['id']))
+
     events = []
     while row < table.height:
         if table.matrix[row][lesson_number_col] == "None":
@@ -68,7 +77,8 @@ def get_sequence(table, lesson_number_col, time_col, row, col):
         if group_name is not None:
             if len(groups) == 0:
                 groups.append(fetch_class_group_by_name(group_name))
-            else:
+
+            elif groups[-1].name != group_name:
                 parent_id = groups[-1].id
                 group = fetch_group_by_name_and_parent_id(group_name, parent_id)
                 groups.append(DbGroup(id=group['id'], name=group['name'], about=group['about']))

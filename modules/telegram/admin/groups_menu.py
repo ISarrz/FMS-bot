@@ -1,35 +1,17 @@
-from telegram import (
-    Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    ContextTypes,
+    CallbackQueryHandler,
 )
 from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
-from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters,
-
-)
-from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters
-)
-from modules.files_api import get_config_field
 from modules.database_api import *
-from modules.time import *
-
+from modules.logger import *
 from modules.telegram.admin.symbols import *
 
-
+@async_logger
 async def update_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     group_id = context.chat_data['group']
     group = fetch_class_group_by_id(group_id)
@@ -38,7 +20,7 @@ async def update_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
-
+@async_logger
 async def send_groups_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     group_id = context.chat_data['group']
     group = fetch_class_group_by_id(group_id)
@@ -89,7 +71,7 @@ async def get_groups_menu_sheets(update: Update, context: ContextTypes.DEFAULT_T
 
     return sheets
 
-
+@async_logger
 async def update_add_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     sheet = await get_add_group_menu_sheet(update, context)
 
@@ -104,7 +86,7 @@ async def get_add_group_menu_sheet(update: Update, context: ContextTypes.DEFAULT
             "Или отмените действие: cancel")
     return {"text": text, "reply_markup": None}
 
-
+@async_logger
 async def add_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
     income = update.message.text
     if income != "cancel":
@@ -117,7 +99,7 @@ async def add_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_groups_menu(update, context)
     return 2
 
-
+@async_logger
 async def send_edit_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     group_id = context.chat_data['group']
     group = fetch_class_group_by_id(group_id)
@@ -127,7 +109,7 @@ async def send_edit_group_menu(update: Update, context: ContextTypes.DEFAULT_TYP
 
     await update.message.reply_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
-
+@async_logger
 async def update_edit_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     sheet = await get_edit_group_menu_sheet(update, context)
 
@@ -148,7 +130,7 @@ async def get_edit_group_menu_sheet(update: Update, context: ContextTypes.DEFAUL
 
     return {"text": f"Редактирование группы: {group.name}", "reply_markup": reply_markup}
 
-
+@async_logger
 async def edit_group_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -166,7 +148,7 @@ async def edit_group_menu_response(update: Update, context: ContextTypes.DEFAULT
     await update_edit_group_field_menu(update, context, query)
     return 5
 
-
+@async_logger
 async def update_edit_group_field_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     text = ("Введите данные\n"
             "Или отмените действие: cancel")
@@ -174,7 +156,7 @@ async def update_edit_group_field_menu(update: Update, context: ContextTypes.DEF
 
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
-
+@async_logger
 async def edit_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
     income = update.message.text
     group_id = int(context.chat_data['group'])
@@ -186,7 +168,7 @@ async def edit_group(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_edit_group_menu(update, context)
     return 4
 
-
+@async_logger
 async def update_delete_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     group_id = int(context.chat_data['group'])
     group = fetch_class_group_by_id(group_id)
@@ -202,7 +184,7 @@ async def update_delete_group_menu(update: Update, context: ContextTypes.DEFAULT
 
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
-
+@async_logger
 async def delete_group_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()

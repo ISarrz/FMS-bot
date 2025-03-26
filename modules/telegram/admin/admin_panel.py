@@ -1,33 +1,11 @@
-from telegram import (
-    Update, InlineKeyboardMarkup
-)
-from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters
-)
-from modules.files_api import get_config_field
-from modules.database_api import (
-    DbGroup,
-    insert_group,
-    update_group_by_id,
-    delete_group_by_id,
-    insert_groups_relation,
-    delete_groups_relation_by_groups_id,
-    fetch_parent_by_id,
-    fetch_child_by_id
-
-)
 from modules.telegram.admin.events_menu import *
 from modules.telegram.admin.main_menu import *
 from modules.telegram.admin.groups_menu import *
+from modules.logger import *
 
 ADMIN_CHAT_ID = get_config_field("admin_chat_id")
 
-
+@async_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.id != ADMIN_CHAT_ID:
         await update.message.reply_text("Access denied")
@@ -36,7 +14,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_main_menu(update, context)
     return 0
 
-
+@async_logger
 async def main_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -50,7 +28,7 @@ async def main_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update_groups_menu(update, context, query)
         return 2
 
-
+@async_logger
 async def groups_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -96,7 +74,7 @@ async def groups_menu_response(update: Update, context: ContextTypes.DEFAULT_TYP
     await update_groups_menu(update, context, query)
     return 2
 
-
+@async_logger
 async def dates_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -129,7 +107,7 @@ async def dates_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update_events_groups_mode_menu(update, context, query)
     return 7
 
-
+@async_logger
 async def events_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -173,14 +151,14 @@ async def events_menu_response(update: Update, context: ContextTypes.DEFAULT_TYP
         context.chat_data['sheet'] += len(sheets)
         context.chat_data['sheet'] %= len(sheets)
 
-        await update_groups_menu(update, context, query)
+        await update_events_events_mode_menu(update, context, query)
         return 7
 
     if income == RIGHT_ARROW and context.chat_data['mode'] == 'events':
         sheets = await get_events_events_mode_menu_sheets(update, context)
         context.chat_data['sheet'] += 1
         context.chat_data['sheet'] %= len(sheets)
-        await update_groups_menu(update, context, query)
+        await update_events_events_mode_menu(update, context, query)
         return 7
 
     if income == 'events':

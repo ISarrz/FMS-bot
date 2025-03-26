@@ -273,9 +273,32 @@ def fetch_image_by_date_and_group_id(date: str, group_id: int):
         """)
 
         response = cur.fetchone()
-        response = response.get('image') if response else None
+        response = response['image'] if response else None
 
     return response
+
+
+def fetch_image_id_by_date_and_group_id(date: str, group_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT id FROM images WHERE date = '{date}' AND group_id = {group_id}
+        """)
+
+        response = cur.fetchone()
+        response = response['id'] if response else None
+
+    return response
+
+
+def fetch_image_id_by_group_id(group_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+SELECT id FROM images WHERE group_id = {group_id}
+""")
 
 
 def fetch_all_images():
@@ -287,6 +310,41 @@ def fetch_all_images():
         """)
 
         response = cur.fetchall()
+
+    return response
+
+
+def fetch_all_users():
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT * from users     
+        """)
+
+        response = cur.fetchall()
+
+    return response
+
+
+def fetch_all_users_updates():
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT * from users_updates    
+        """)
+
+        response = cur.fetchall()
+
+    return response
+
+
+def fetch_all_class_users():
+    users = fetch_all_users()
+    response = []
+    for user in users:
+        response.append(DbUser(id=user['id'], telegram_id=user['telegram_id']))
 
     return response
 
@@ -330,6 +388,48 @@ def fetch_user_notifications(user_id: int):
         response = cur.fetchone()
 
         return response
+
+
+def fetch_user_update_groups_by_date(user_id: int, date: str):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT * FROM groups JOIN users_updates ON users_updates.group_id = groups.id 
+        WHERE users_updates.user_id = {user_id} AND users_updates.date = '{date}'
+        """)
+
+        response = cur.fetchall()
+
+    return response
+
+
+def fetch_user_update_dates_by_id(user_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT users_updates.date FROM groups JOIN users_updates ON users_updates.group_id = groups.id 
+        WHERE users_updates.user_id = {user_id}
+        """)
+
+        response = cur.fetchall()
+    response = [date['date'] for date in response]
+
+    return response
+
+
+def fetch_all_logs():
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        SELECT * FROM logs
+        """)
+
+        response = cur.fetchall()
+
+    return response
 
 
 if __name__ == '__main__':

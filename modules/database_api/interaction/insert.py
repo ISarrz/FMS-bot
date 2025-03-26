@@ -112,5 +112,29 @@ def insert_user_notifications_by_id(user_id: int):
     return relation_id
 
 
+def insert_user_updates(user_id: int, date: str, group_id: int):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        INSERT INTO users_updates (user_id, date, group_id) VALUES (?, ?, ?)
+        """, (user_id, date, group_id))
+
+    relation_id = cur.lastrowid
+
+    return relation_id
+
+
+def insert_logs(value: str):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        INSERT INTO logs (value) VALUES (?)
+        """, (value,))
+
+    relation_id = cur.lastrowid
+
+    return relation_id
+
+
 if __name__ == '__main__':
     pass

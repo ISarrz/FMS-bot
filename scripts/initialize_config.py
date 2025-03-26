@@ -9,7 +9,8 @@ def initialize_config():
         "site_address": input("Enter site address: "),
         "site_login": input("Enter site login: "),
         "site_password": input("Enter site password: "),
-        "admin_chat_id": int(input("Enter admin chat_id: "))
+        "admin_chat_id": int(input("Enter admin chat_id: ")),
+        "logs_chat_id": int(input("Enter logs_chat_id: "))
     }
 
     with open(config_path, "w") as f:

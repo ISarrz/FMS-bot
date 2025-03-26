@@ -8,8 +8,10 @@ from modules.images_updater.style import *
 from modules.images_updater.table_parts import *
 import datetime as dt
 from modules.files_api import *
+from modules.logger import *
 
 
+@logger
 def update():
     current_string_dates = get_current_string_dates()
     for date in current_string_dates:
@@ -27,7 +29,7 @@ def update_date(date: str):
                                    start=event['start'], end=event['end'], owner=event['owner'], place=event['place'])
                            for event in group_events]
 
-        if group_events and db_group.name not in "ΜΞΟΠΡΣΤΦΧΨ":
+        if group_events:
             render_group(db_group, db_group_events)
 
         groups_with_events.append(db_group)
@@ -154,6 +156,7 @@ def render_group(group: DbGroup, events):
     # image_content.seek(0)
     group_id = group.id
     date = events[0].date
+    delete_image_by_date_and_group_id(date, group_id)
     insert_image(date=date, group_id=group_id, image=image_content)
     return
     pass

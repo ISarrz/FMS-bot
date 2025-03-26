@@ -1,7 +1,14 @@
-from modules.time.dates import get_current_week, get_next_week
+from modules.time.dates import get_current_week, get_next_week, get_current_string_dates
 from modules.files_api import downloads_path, parsed_files_path
 from modules.database_api import *
 import os
+from modules.logger import *
+
+
+@logger
+def clean_all():
+    clean_files()
+    clean_database()
 
 
 def clean_files():
@@ -22,25 +29,32 @@ def clean_files():
 def clean_database():
     clean_events()
     clean_images()
+    clean_users_updates()
 
 
 def clean_events():
-    current_dates = get_current_week() + get_next_week()
-    current_string_dates = [date.strftime('%d.%m') for date in current_dates]
+    current_dates = get_current_string_dates()
     events = fetch_all_events()
     for event in events:
-        if event['date'] not in current_string_dates:
+        if event['date'] not in current_dates:
             delete_event_by_id(event['id'])
             delete_group_event_by_event_id(event['id'])
 
 
 def clean_images():
-    current_dates = get_current_week() + get_next_week()
-    current_string_dates = [date.strftime('%d.%m') for date in current_dates]
+    current_dates = get_current_string_dates()
     images = fetch_all_images()
     for image in images:
-        if image.date not in current_string_dates:
-            delete_image_by_id(image.id)
+        if image['date'] not in current_dates:
+            delete_image_by_id(image['id'])
+
+
+def clean_users_updates():
+    current_dates = get_current_week() + get_next_week()
+    users_updates = fetch_all_users_updates()
+    for user_update in users_updates:
+        if user_update['date'] not in current_dates:
+            delete_users_updates_by_id(user_update['id'])
 
 
 if __name__ == "__main__":

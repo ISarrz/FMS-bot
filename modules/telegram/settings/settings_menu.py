@@ -1,33 +1,11 @@
-from telegram import (
-    Update, InlineKeyboardMarkup
-)
-from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters
-)
-from modules.files_api import get_config_field
-from modules.database_api import (
-    DbGroup,
-    insert_group,
-    update_group_by_id,
-    delete_group_by_id,
-    insert_groups_relation,
-    delete_groups_relation_by_groups_id,
-    fetch_parent_by_id,
-    fetch_child_by_id
-
-)
 from modules.telegram.admin.events_menu import *
-from modules.telegram.admin.main_menu import *
 from modules.telegram.admin.groups_menu import *
+from modules.logger import *
 
 ADMIN_CHAT_ID = get_config_field("admin_chat_id")
 
 
+@async_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     if not fetch_user_by_telegram_id(telegram_id):
@@ -38,6 +16,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return 0
 
 
+@async_logger
 async def send_settings_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sheet = await get_settings_menu_sheet(update, context)
     context.chat_data['group'] = 1
@@ -46,6 +25,7 @@ async def send_settings_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.message.reply_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
 
+@async_logger
 async def update_settings_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
     sheet = await get_settings_menu_sheet(update, context)
     context.chat_data['group'] = 1
@@ -70,6 +50,7 @@ async def get_settings_menu_sheet(update: Update, context: ContextTypes.DEFAULT_
     return sheet
 
 
+@async_logger
 async def settings_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -87,11 +68,10 @@ async def settings_menu_response(update: Update, context: ContextTypes.DEFAULT_T
         return 0
 
 
+@async_logger
 async def update_settings_groups_mode_menu(update: Update, context: ContextTypes.DEFAULT_TYPE,
                                            query: CallbackQueryHandler):
     sheet = await get_settings_groups_menu_sheet(update, context)
-
-
 
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
@@ -146,6 +126,7 @@ async def get_setting_groups_menu_sheets(update: Update, context: ContextTypes.D
     return sheets
 
 
+@async_logger
 async def settings_groups_mode_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -205,6 +186,7 @@ async def settings_groups_mode_menu_response(update: Update, context: ContextTyp
     return 1
 
 
+@async_logger
 async def update_settings_delete_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE,
                                             query: CallbackQueryHandler):
     keyboard = [[InlineKeyboardButton(text=SUBMIT, callback_data=SUBMIT),
@@ -218,6 +200,7 @@ async def update_settings_delete_group_menu(update: Update, context: ContextType
     await query.edit_message_text(text=sheet["text"], reply_markup=sheet["reply_markup"])
 
 
+@async_logger
 async def settings_delete_group_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -239,7 +222,6 @@ async def settings_delete_group_response(update: Update, context: ContextTypes.D
 
         context.chat_data['group'] = parent.id
 
-
         context.chat_data['sheet'] = 0
         delete_user_group_and_relations(user.id, group.id)
         await update_settings_groups_mode_menu(update, context, query)
@@ -251,6 +233,7 @@ async def settings_delete_group_response(update: Update, context: ContextTypes.D
         return 1
 
 
+@async_logger
 async def update_settings_add_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE,
                                          query: CallbackQueryHandler):
     sheet = await get_setting_add_menu_sheet(update, context)
@@ -302,6 +285,7 @@ async def get_setting_add_menu_sheets(update: Update, context: ContextTypes.DEFA
     return sheets
 
 
+@async_logger
 async def settings_add_group_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()

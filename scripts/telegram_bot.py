@@ -1,20 +1,55 @@
-import os
-from modules.files_api import get_config_field
 from telegram import *
 from telegram.ext import *
 from modules.telegram import ConversationHandler_admin_panel
 from modules.telegram.settings.settings_menu import ConversationHandler_settings
 from modules.telegram.timetable.timetable_menu import ConversationHandler_timetable
 from modules.database_api import *
+from modules.files_api import text_reader
+from modules.files_api import *
+from modules.time.dates import *
+from modules.logger.logger import *
+
+async def send_logs(context: CallbackContext):
+    logs_chat_id = get_config_field('logs_chat_id')
+    logs = fetch_all_logs()
+    for log in logs:
+        await  context.bot.send_message(chat_id=logs_chat_id, text=log['value'])
+        delete_logs_by_id(log['id'])
 
 
-# async def help_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     text = fnc.get_message('help', 'help.txt')
-#     await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
-#
+async def help_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = text_reader.read(telegram_info_message_path)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+
+
+@async_logger
+async def update_user_info(context: CallbackContext):
+    users = fetch_all_class_users()
+
+    for user in users:
+        user_groups = fetch_user_groups_by_id(user.id)
+        user_groups = [fetch_class_group_by_id(group['id']) for group in user_groups]
+        updated_dates = []
+        for date in get_current_string_dates():
+
+            updated_groups = fetch_user_update_groups_by_date(user.id, date)
+            updated_groups = [fetch_class_group_by_id(group['id']) for group in updated_groups]
+
+            for group in user_groups:
+                if group not in updated_groups and fetch_image_id_by_date_and_group_id(date, group.id):
+                    updated_dates.append(date)
+                    insert_user_updates(user.id, date, group.id)
+
+        updated_dates = list(set(updated_dates))
+        if updated_dates:
+            text = 'Доступно расписание на: ' + ", ".join(updated_dates)
+            await context.bot.send_message(chat_id=user.telegram_id, text=text)
+
 
 async def start_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = "TEST"
+    text = text_reader.read(telegram_info_message_path)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+
     telegram_id = update.effective_user.id
     if fetch_user_by_telegram_id(telegram_id):
         fetch_class_user_by_telegram_id(telegram_id)
@@ -22,45 +57,26 @@ async def start_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = insert_user(telegram_id)
         insert_user_notifications_by_id(user_id)
 
-    await update.message.reply_text(text=text)
-
 
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(text=str(chat_id))
 
 
-# write sending new timetable
-
-
 def main():
     token = get_config_field('telegram_api_token')
     application = ApplicationBuilder().token(token).build()
 
-    # application.add_handler(CommandHandler('help', help_message))
+    application.add_handler(CommandHandler('help', help_message))
     application.add_handler(CommandHandler('start', start_message))
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
-    # application.add_handler(CommandHandler('today', today.today_message))
-    #
-    # application.add_handler(start.ConversationHandler_start, 1)
-    # application.add_handler(ConversationHandler_groups_panel, 1)
     application.add_handler(ConversationHandler_admin_panel, 1)
     application.add_handler(ConversationHandler_settings, 2)
     application.add_handler(ConversationHandler_timetable, 3)
 
-    # application.add_handler(ConversationHandler_events_panel, 2)
-    # application.add_handler(settings.ConversationHandler_settings, 2)
-    # application.add_handler(today.ConversationHandler_today, 3)
-    # application.add_handler(timetable.ConversationHandler_timetable, 4)
-    # application.add_handler(timetable, 5)
-
-    async def callback(context: CallbackContext):
-        job = context.job
-
-        await context.bot.send_message(job.chat_id, text=f"OK")
-
-    # job_deque = application.job_queue
-    # job_deque.run_repeating(callback, 5, chat_id=get_config_field('admin_chat_id'))
+    job_deque = application.job_queue
+    job_deque.run_repeating(update_user_info, 10)
+    job_deque.run_repeating(send_logs, 10)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 

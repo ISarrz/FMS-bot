@@ -8,9 +8,11 @@ from modules.files_api import (
 from modules.files_api import downloads_path, parsed_files_path
 import shutil
 import os
+from modules.logger import *
 
 
 # playwright install firefox
+@async_logger
 async def run(hide=True):
     async with async_playwright() as playwright:
         site_address = get_config_field('site_address')

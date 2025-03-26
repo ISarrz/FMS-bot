@@ -26,3 +26,7 @@ images_updater_path = os.path.join(modules_path, "images_updater")
 render_path = os.path.join(images_updater_path, "render")
 templates_path = os.path.join(render_path, "templates")
 fonts_path = os.path.join(images_updater_path, "fonts")
+
+telegram_path = os.path.join(modules_path, "telegram")
+telegram_messages_path = os.path.join(telegram_path, "messages")
+telegram_info_message_path = os.path.join(telegram_messages_path, "info.txt")

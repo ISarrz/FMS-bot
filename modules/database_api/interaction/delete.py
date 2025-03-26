@@ -46,8 +46,16 @@ def delete_user_group(user_id: int, group_id):
     with sqlite3.connect(database_path) as conn:
         cur = conn.cursor()
         cur.execute(f"""
-                    DELETE FROM users_groups WHERE user_id = {user_id} AND group_id = {group_id}
-                     """)
+        DELETE FROM users_groups WHERE user_id = {user_id} AND group_id = {group_id}
+        """)
+
+
+def delete_users_updates_by_id(users_updates_id: int):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        DELETE FROM users_updates WHERE id = {users_updates_id} 
+        """)
 
 
 def delete_user_group_and_relations(user_id: int, group_id: int):
@@ -57,6 +65,7 @@ def delete_user_group_and_relations(user_id: int, group_id: int):
         delete_user_group_and_relations(user_id, group['id'])
 
     delete_user_group(user_id, group_id)
+    fetch_image_by_date_and_group_id()
 
 
 def delete_group_event_by_group_and_event_id(group_id: int, event_id: int):
@@ -88,3 +97,25 @@ def delete_groups_relation_by_groups_id(parent_id: int, child_id: int):
 
 def delete_image_by_id(image_id: int):
     delete_by_id('images', image_id)
+def delete_image_by_date_and_group_id(date:str, group_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        DELETE FROM images WHERE date={date} AND group_id = {group_id}
+        """)
+
+
+def delete_logs_by_id(logs_id: int):
+    delete_by_id('logs', logs_id)
+
+
+def delete_user_updates_by_date_and_group_id(date:str,group_id: int):
+    groups = fetch_groups_sequence(group_id)
+    for group in groups:
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
+            DELETE FROM users_updates WHERE date={date} AND group_id = {group['id']}
+            """)
