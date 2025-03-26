@@ -24,7 +24,7 @@ class Table:
 
         return matrix
 
-    def find_cell_by_value(self, value) -> tuple[int, int] | None:
+    def find_cell_by_value(self, value):
         for row in range(self.height):
             for col in range(self.width):
                 if self.matrix[row][col] == value:
@@ -32,7 +32,7 @@ class Table:
 
         return None
 
-    def find_cell_by_regular_pattern(self, pattern) -> tuple[int, int] | None:
+    def find_cell_by_regular_pattern(self, pattern):
         for row in range(self.height):
             for col in range(self.width):
 
