@@ -46,9 +46,16 @@ async def send_logs(context: CallbackContext):
         delete_logs_by_id(log['id'])
 
 
-async def help_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def info_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = text_reader.read(telegram_info_message_path)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+
+    telegram_id = update.effective_user.id
+    if fetch_user_by_telegram_id(telegram_id):
+        fetch_class_user_by_telegram_id(telegram_id)
+    else:
+        user_id = insert_user(telegram_id)
+        insert_user_notifications_by_id(user_id)
 
 
 @async_logger
@@ -56,6 +63,10 @@ async def update_user_info(context: CallbackContext):
     users = fetch_all_class_users()
 
     for user in users:
+        notif_state = fetch_user_notifications(user.id)
+        if not notif_state:
+            continue
+
         user_groups = fetch_user_groups_by_id(user.id)
         user_groups = [fetch_class_group_by_id(group['id']) for group in user_groups]
         updated_dates = []
@@ -75,18 +86,6 @@ async def update_user_info(context: CallbackContext):
             await context.bot.send_message(chat_id=user.telegram_id, text=text)
 
 
-async def start_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = text_reader.read(telegram_info_message_path)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
-
-    telegram_id = update.effective_user.id
-    if fetch_user_by_telegram_id(telegram_id):
-        fetch_class_user_by_telegram_id(telegram_id)
-    else:
-        user_id = insert_user(telegram_id)
-        insert_user_notifications_by_id(user_id)
-
-
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(text=str(chat_id))
@@ -96,15 +95,14 @@ def main():
     token = get_config_field('telegram_api_token')
     application = ApplicationBuilder().token(token).build()
 
-    application.add_handler(CommandHandler('help', help_message))
-    application.add_handler(CommandHandler('start', start_message))
+    application.add_handler(CommandHandler('info', info_message))
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
     application.add_handler(ConversationHandler_admin_panel, 1)
     application.add_handler(ConversationHandler_settings, 2)
     application.add_handler(ConversationHandler_timetable, 3)
 
     job_deque = application.job_queue
-    job_deque.run_repeating(update_user_info, 10)
+    job_deque.run_repeating(update_user_info, 60)
     job_deque.run_repeating(send_logs, 10)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)

@@ -156,10 +156,8 @@ def render_group(group: DbGroup, events):
     # image_content.seek(0)
     group_id = group.id
     date = events[0].date
-    delete_image_by_date_and_group_id(date, group_id)
-    insert_image(date=date, group_id=group_id, image=image_content)
-    return
-    pass
+    if not fetch_image_id_by_date_and_group_id(date, group_id):
+        insert_image(date=date, group_id=group_id, image=image_content)
 
 
 if __name__ == '__main__':

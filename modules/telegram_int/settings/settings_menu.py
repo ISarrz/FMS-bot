@@ -38,7 +38,7 @@ async def get_settings_menu_sheet(update: Update, context: ContextTypes.DEFAULT_
     telegram_id = update.effective_user.id
     user = fetch_class_user_by_telegram_id(telegram_id)
     notifications_state = int(fetch_user_notifications(user.id)['value'])
-    notif_text = f'Уведомления  {"🗸" if notifications_state else "⨯"}'
+    notif_text = f'Уведомления  {"✓︎" if notifications_state else "⨯"}'
     keyboard = [[InlineKeyboardButton(text="Группы", callback_data="groups")],
                 [InlineKeyboardButton(text=notif_text, callback_data="notifications")]
                 ]

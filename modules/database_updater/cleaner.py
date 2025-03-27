@@ -50,7 +50,7 @@ def clean_images():
 
 
 def clean_users_updates():
-    current_dates = get_current_week() + get_next_week()
+    current_dates = get_current_string_dates()
     users_updates = fetch_all_users_updates()
     for user_update in users_updates:
         if user_update['date'] not in current_dates:

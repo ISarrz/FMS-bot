@@ -96,7 +96,9 @@ def delete_groups_relation_by_groups_id(parent_id: int, child_id: int):
 
 def delete_image_by_id(image_id: int):
     delete_by_id('images', image_id)
-def delete_image_by_date_and_group_id(date:str, group_id: int):
+
+
+def delete_image_by_date_and_group_id(date: str, group_id: int):
     with sqlite3.connect(database_path) as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -109,7 +111,7 @@ def delete_logs_by_id(logs_id: int):
     delete_by_id('logs', logs_id)
 
 
-def delete_user_updates_by_date_and_group_id(date:str,group_id: int):
+def delete_user_updates_by_date_and_group_id(date: str, group_id: int):
     groups = fetch_groups_sequence(group_id)
     for group in groups:
         with sqlite3.connect(database_path) as conn:
