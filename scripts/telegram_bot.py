@@ -103,7 +103,7 @@ def main():
 
     job_deque = application.job_queue
     job_deque.run_repeating(update_user_info, 60)
-    job_deque.run_repeating(send_logs, 10)
+    job_deque.run_repeating(send_logs, 20)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
