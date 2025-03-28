@@ -117,7 +117,7 @@ async def get_setting_groups_menu_sheets(update: Update, context: ContextTypes.D
     for i in range(len(sheets)):
         sheets[i].append(navigation)
         reply_markup = InlineKeyboardMarkup(sheets[i])
-        text = f"Настройки, группа {group.name}"
+        text = f"Настройки: {group.name}"
         if len(sheets) > 1:
             text += f'; №{int(context.chat_data["sheet"]) + 1}'
 
@@ -224,6 +224,7 @@ async def settings_delete_group_response(update: Update, context: ContextTypes.D
 
         context.chat_data['sheet'] = 0
         delete_user_group_and_relations(user.id, group.id)
+
         await update_settings_groups_mode_menu(update, context, query)
         return 1
 

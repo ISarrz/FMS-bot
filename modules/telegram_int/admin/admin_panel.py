@@ -127,6 +127,7 @@ async def dates_menu_response(update: Update, context: ContextTypes.DEFAULT_TYPE
         return 0
 
     context.chat_data['date'] = income
+    context.chat_data['sheet'] = 0
     context.chat_data['mode'] = 'groups'
     await update_events_groups_mode_menu(update, context, query)
     return 7

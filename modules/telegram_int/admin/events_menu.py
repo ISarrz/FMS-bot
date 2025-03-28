@@ -117,15 +117,20 @@ async def get_events_groups_mode_menu_sheets(update: Update, context: ContextTyp
         sheets[-1].append([InlineKeyboardButton(text=child_group.name, callback_data=child_group.id)])
 
     navigation = [
-        InlineKeyboardButton(text=BACK_ARROW, callback_data=BACK_ARROW),
-        InlineKeyboardButton(text="events", callback_data="events")
+        [InlineKeyboardButton(text=BACK_ARROW, callback_data=BACK_ARROW),
+         InlineKeyboardButton(text="events", callback_data="events")]
     ]
     if len(sheets) > 1:
-        navigation.insert(0, InlineKeyboardButton(text=LEFT_ARROW, callback_data=LEFT_ARROW))
-        navigation.append(InlineKeyboardButton(text=RIGHT_ARROW, callback_data=RIGHT_ARROW))
+        navigation = [
+            [InlineKeyboardButton(text=LEFT_ARROW, callback_data=LEFT_ARROW),
+             InlineKeyboardButton(text=BACK_ARROW, callback_data=BACK_ARROW),
+             InlineKeyboardButton(text=RIGHT_ARROW, callback_data=RIGHT_ARROW)
+             ],
+            [InlineKeyboardButton(text="events", callback_data="events")]
+        ]
 
     for ind in range(len(sheets)):
-        sheets[ind].append(navigation)
+        sheets[ind] += navigation
         reply_markup = InlineKeyboardMarkup(sheets[ind])
         text = f"Группа {group.name}"
         if len(sheets) > 1:
@@ -184,19 +189,25 @@ async def get_events_events_mode_menu_sheets(update: Update, context: ContextTyp
     for event in events:
         if len(sheets[-1]) > MAX_SHEET_SIZE:
             sheets.append([])
-        text = f"{event.name}: {event.start}-{event.end}; {event.place}; {event.owner}"
+        text = f"{event.start}-{event.end}; {event.name}"
         sheets[-1].append([InlineKeyboardButton(text=text, callback_data=event.id)])
 
-    navigation = [
+    navigation = [[
         InlineKeyboardButton(text=ADD, callback_data=ADD),
         InlineKeyboardButton(text="groups", callback_data="groups")
-    ]
+    ]]
     if len(sheets) > 1:
-        navigation.insert(0, InlineKeyboardButton(text=LEFT_ARROW, callback_data=LEFT_ARROW))
-        navigation.append(InlineKeyboardButton(text=RIGHT_ARROW, callback_data=RIGHT_ARROW))
+        navigation = [
+            [
+                InlineKeyboardButton(text=LEFT_ARROW, callback_data=LEFT_ARROW),
+                InlineKeyboardButton(text=ADD, callback_data=ADD),
+                InlineKeyboardButton(text=RIGHT_ARROW, callback_data=RIGHT_ARROW)
+            ],
+            [InlineKeyboardButton(text="groups", callback_data="groups")]
+        ]
 
     for ind in range(len(sheets)):
-        sheets[ind].append(navigation)
+        sheets[ind] += navigation
         reply_markup = InlineKeyboardMarkup(sheets[ind])
         text = f"Группа {group.name}; дата {date}"
         if len(sheets) > 1:
@@ -221,8 +232,9 @@ async def get_add_event_menu_sheet(update: Update, context: ContextTypes.DEFAULT
     parent_id = int(context.chat_data['group'])
     date = context.chat_data['date']
 
-    text = ("Введите данные события:\n"
+    text = ("Введите данные события(в расписании отображается только about):\n"
             "name:\n"
+            "about:\n"
             "start:\n"
             "end:\n"
             "owner:\n"
@@ -238,16 +250,17 @@ async def add_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parent_id = int(context.chat_data['group'])
         income = income.split('\n')
         event_name = income[0]
-        event_start = income[1]
-        event_end = income[2]
-        event_owner = income[3]
-        event_place = income[4]
+        event_about = income[1]
+        event_start = income[2]
+        event_end = income[3]
+        event_owner = income[4]
+        event_place = income[5]
         date = context.chat_data['date']
 
-        event_id = insert_event(name=event_name, start=event_start,
+        event_id = insert_event(name=event_name,
+                                about=event_about, start=event_start,
                                 end=event_end, owner=event_owner,
-                                place=event_place,
-                                about=str(None), date=date)
+                                place=event_place, date=date)
         insert_group_event(parent_id, event_id)
         context.chat_data['event'] = event_id
         await send_edit_event_menu(update, context)
@@ -277,20 +290,32 @@ async def get_edit_event_menu_sheet(update: Update, context: ContextTypes.DEFAUL
     event = fetch_class_event_by_id(event_id)
     keyboard = []
 
-    keyboard.append([InlineKeyboardButton(text=f"name: {event.name}", callback_data="name")])
-    keyboard.append([InlineKeyboardButton(text=f"start: {event.start}", callback_data="start")])
-    keyboard.append([InlineKeyboardButton(text=f"end: {event.end}", callback_data="end")])
-    keyboard.append([InlineKeyboardButton(text=f"owner: {event.owner}", callback_data="owner")])
-    keyboard.append([InlineKeyboardButton(text=f"place: {event.place}", callback_data="place")])
-    keyboard.append([InlineKeyboardButton(text=f"date: {event.date}", callback_data="date")])
+    keyboard.append([
+        InlineKeyboardButton(text=f"name", callback_data="name"),
+        InlineKeyboardButton(text=f"about", callback_data="about"),
+        InlineKeyboardButton(text=f"start", callback_data="start"),
+        InlineKeyboardButton(text=f"end", callback_data="end"),
+        InlineKeyboardButton(text=f"owner", callback_data="owner"),
+        InlineKeyboardButton(text=f"place", callback_data="place"),
+        InlineKeyboardButton(text=f"date", callback_data="date")
+    ])
 
     keyboard.append([
         InlineKeyboardButton(text=BACK_ARROW, callback_data=BACK_ARROW),
         InlineKeyboardButton(text=DELETE, callback_data=DELETE),
     ])
     reply_markup = InlineKeyboardMarkup(keyboard)
-
-    return {"text": f"Редактирование события: {event.name}", "reply_markup": reply_markup}
+    text = (f"Информация(в расписании отображается только about):\n"
+            f"date: {event.date} \n"
+            f"id: {event.id}\n"
+            f"start: {event.start} \n"
+            f"end: {event.end} \n"
+            f"name:{event.name} \n\n"
+            f"about: {event.about} \n\n"
+            f"owner: {event.owner} \n\n"
+            f"place: {event.place} \n\n "
+            )
+    return {"text": text, "reply_markup": reply_markup}
 
 
 @async_logger
@@ -338,6 +363,9 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.chat_data['edit_group_field'] == "start":
         event.start = income
 
+    if context.chat_data['edit_group_field'] == "about":
+        event.about = income
+
     if context.chat_data['edit_group_field'] == "end":
         event.end = income
 
@@ -358,7 +386,7 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     group_id = context.chat_data['group']
     group = fetch_class_group_by_id(group_id)
     delete_image_by_date_and_group_id(date, group_id)
-    delete_user_updates_by_date_and_group_id(date, group.id)
+    delete_user_updates_by_date_and_group_id(date, group_id)
     await send_edit_event_menu(update, context)
     return 9
 

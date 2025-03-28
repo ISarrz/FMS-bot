@@ -63,10 +63,6 @@ async def update_user_info(context: CallbackContext):
     users = fetch_all_class_users()
 
     for user in users:
-        notif_state = fetch_user_notifications(user.id)
-        if not notif_state:
-            continue
-
         user_groups = fetch_user_groups_by_id(user.id)
         user_groups = [fetch_class_group_by_id(group['id']) for group in user_groups]
         updated_dates = []
@@ -81,7 +77,9 @@ async def update_user_info(context: CallbackContext):
                     insert_user_updates(user.id, date, group.id)
 
         updated_dates = list(set(updated_dates))
-        if updated_dates:
+
+        notif_state = fetch_user_notifications(user.id)
+        if updated_dates and notif_state['value']:
             text = 'Доступно расписание на: ' + ", ".join(updated_dates)
             await context.bot.send_message(chat_id=user.telegram_id, text=text)
 

@@ -65,6 +65,7 @@ def delete_user_group_and_relations(user_id: int, group_id: int):
         delete_user_group_and_relations(user_id, group['id'])
 
     delete_user_group(user_id, group_id)
+    delete_user_updates_by_user_id_and_group_id(user_id, group_id)
 
 
 def delete_group_event_by_group_and_event_id(group_id: int, event_id: int):
@@ -120,3 +121,13 @@ def delete_user_updates_by_date_and_group_id(date: str, group_id: int):
             cur.execute(f"""
             DELETE FROM users_updates WHERE date={date} AND group_id = {group['id']}
             """)
+
+def delete_user_updates_by_user_id_and_group_id(user_id:int, group_id: int):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+        DELETE FROM users_updates WHERE user_id={user_id} AND group_id = {group_id}
+        """)
+
+
