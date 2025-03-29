@@ -313,7 +313,7 @@ async def get_edit_event_menu_sheet(update: Update, context: ContextTypes.DEFAUL
             f"name:{event.name} \n\n"
             f"about: {event.about} \n\n"
             f"owner: {event.owner} \n\n"
-            f"place: {event.place} \n\n "
+            f"place: {event.place} \n\n     "
             )
     return {"text": text, "reply_markup": reply_markup}
 

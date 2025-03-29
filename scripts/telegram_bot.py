@@ -94,6 +94,7 @@ def main():
     application = ApplicationBuilder().token(token).build()
 
     application.add_handler(CommandHandler('info', info_message))
+    application.add_handler(CommandHandler('start', info_message))
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
     application.add_handler(ConversationHandler_admin_panel, 1)
     application.add_handler(ConversationHandler_settings, 2)
