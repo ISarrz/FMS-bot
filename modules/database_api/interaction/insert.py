@@ -1,7 +1,7 @@
 import sqlite3
 
 from modules.files_api.paths import database_path
-from modules.database_api.dataclasses import Event, Group
+from modules.database_api.db_classes import Event, Group
 
 
 def insert_event(name: str, about: str, date: str, start: str, end: str, owner: str, place: str) -> int:
