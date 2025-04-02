@@ -6,31 +6,44 @@ import time
 import asyncio
 
 from modules.database_api.interaction.insert import insert_logs
-from modules.database_updater import downloader
+from modules.database_updater.downloader import Web
 from modules.database_updater import parser
 from modules.database_updater import cleaner
 from modules.images_updater import updater
 
 
-def run_data_update():
-    asyncio.run(downloader.run())
-    parser.parse_all()
-    cleaner.clean_all()
-    updater.update()
+class DataUpdater:
+    def __init__(self, web):
+        self.web = web
+
+    async def run(self):
+        await self.web.download_timetable()
+        parser.parse_all()
+        cleaner.clean_all()
+        updater.update()
+
+    @classmethod
+    async def create(cls):
+        web = await Web.create()
+        return DataUpdater(web)
 
 
-def data_update_run_once():
-    run_data_update()
+async def data_update_run_once():
+    data_updater = await DataUpdater.create()
+    await data_updater.run()
 
 
-def data_update_run_repeat():
-    schedule.every(2).minutes.do(run_data_update)
+async def data_update_run_repeat():
+    delay = 2 * 60 * 100
+    data_updater = await DataUpdater.create()
+
     while True:
-        schedule.run_pending()
-        time.sleep(1)
+        await data_updater.run()
+        time.sleep(delay)
 
 
 if __name__ == "__main__":
     # data_update_run_once()
-    data_update_run_repeat()
+    asyncio.run(data_update_run_repeat())
+
     # run_repeat()
