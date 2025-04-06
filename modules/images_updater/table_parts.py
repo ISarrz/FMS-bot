@@ -79,7 +79,7 @@ empty_style = CellStyle(fill=colors['discord4'], padding=1, outline_color=colors
 black_empty_font = load_font("Nunito Black", 1)
 black_empty_text = TextStyle(black_empty_font, color=colors['white'], alignment='center', spacing=0)
 
-black_empty_style = CellStyle(fill=colors['discord4'], padding=1, outline_color=colors['discord4'], line_width=0,
+black_empty_style = CellStyle(fill=colors['discord4'], padding=1, outline_color=colors['discord4'], line_width=10,
                               text_style=black_empty_text, minimum_height=1)
 
 im = Image.new('RGB', (500, 500), colors['white'])

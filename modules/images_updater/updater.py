@@ -84,10 +84,6 @@ def render_group(group: DbGroup, events):
     for i in range(len(events)):
         event_number = i + 1
         matrix[event_number][0] = f"{events[i].start}\n{event_number}\n{events[i].end}"
-        # if events[i].about != "None":
-        #     matrix[event_number][1] = f"{events[i].name}\n{events[i].owner}\n{events[i].about}\n{events[i].place}"
-        # else:
-        # matrix[event_number][1] = f"{events[i].name}\n{events[i].owner}\n{events[i].place}"
         matrix[event_number][1] = normalize_string(events[i].about)
 
     table = Table(matrix=matrix, cell_style=main_style)
@@ -97,52 +93,15 @@ def render_group(group: DbGroup, events):
     table.set_area_style((1, 0), (len(matrix) - 1, 0), numbers_style)
     # table.set_cell_style((0, 0), empty_style)
     table.set_cell_style((0, 0), date_style)
-    # lines_styles = [time_text, numbers_text, time_text]
-    # table.set_area_lines_style((2, 0), (len(matrix) - 1, 0), lines_styles)
-    # table.unite_area((0, 1), (0, len(matrix[0]) - 1))
 
-    # table.set_same_columns(list(range(1, len(matrix[0]))))
-    # for i in range(2, len(matrix)):
-    #     for j in range(1, len(matrix[i]) - 1):
-    #         if matrix[i][j] == matrix[i][j + 1]:
-    #             table.unite_cells((i, j), (i, j + 1))
-    # for i in range(2, len(matrix) - 1):
-    #     for j in range(1, len(matrix[i])):
-    #         if matrix[i][j] == matrix[i + 1][j]:
-    #             try:
-    #                 table.unite_cells((i, j), (i + 1, j))
-    #             except Exception:
-    #                 pass
-
-    # table = Table(matrix=matrix, cell_style=main_style)
-    # table.set_area_style((0, 1), (0, len(matrix[0]) - 1), header_style)
-    # table.set_area_style((1, 1), (1, len(matrix[0]) - 1), groups_style)
-    #
-    # table.set_area_style((2, 0), (len(matrix) - 1, 0), numbers_style)
-    # table.set_cell_style((1, 0), empty_style)
-    # table.set_cell_style((0, 0), date_style)
     lines_styles = [time_text, numbers_text, time_text]
     table.set_area_lines_style((1, 0), (len(matrix) - 1, 0), lines_styles)
-    # table.unite_area((0, 1), (0, len(matrix[0]) - 1))
-    #
-    # table.set_same_columns(list(range(1, len(matrix[0]))))
-    # for i in range(2, len(matrix)):
-    #     for j in range(1, len(matrix[i]) - 1):
-    #         if matrix[i][j] == matrix[i][j + 1]:
-    #             table.unite_cells((i, j), (i, j + 1))
-    # for i in range(2, len(matrix) - 1):
-    #     for j in range(1, len(matrix[i])):
-    #         if matrix[i][j] == matrix[i + 1][j]:
-    #             try:
-    #                 table.unite_cells((i, j), (i + 1, j))
-    #             except Exception:
-    #                 pass
-    #
-    # table.autoformat()
-    # picture = table.draw(margin=10)
-    # return picture
-    #
-    # pass
+
+    for i in range(2, len(matrix)):
+        for j in range(1, len(matrix[i])):
+            if matrix[i][j] == "None" or matrix[i][j] is None:
+                matrix[i][j] = ''
+                table.set_cell_style((i, j), black_empty_style)
 
     table.autoformat()
     picture = table.draw(margin=10)
@@ -162,9 +121,3 @@ def render_group(group: DbGroup, events):
 
 if __name__ == '__main__':
     update()
-    # a = fetch_all_images()[0]
-    # with open('img.png', 'wb') as f:
-    #     f.write(a['image'])
-
-    # q = f.read()
-    pass
