@@ -12,14 +12,29 @@ class DB:
     event = Event()
 
     @staticmethod
-    def fetch_all(table_name: str, **kwargs):
-        request = "WHERE" + " AND ".join(f"{arg} = ?" for arg in kwargs.keys()) if kwargs else ""
+    def fetch_one(table_name: str, **kwargs):
+        where_request = DB.create_where_request(**kwargs)
 
         with sqlite3.connect(database_path) as conn:
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
             cur.execute(f"""
-            SELECT * FROM {table_name} {request}
+                SELECT * FROM {table_name} {where_request}
+                """, tuple(kwargs.values()))
+
+            response = cur.fetchone()
+
+        return response
+
+    @staticmethod
+    def fetch_many(table_name: str, **kwargs):
+        where_request = DB.create_where_request(**kwargs)
+
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
+            SELECT * FROM {table_name} {where_request}
             """, tuple(kwargs.values()))
 
             response = cur.fetchall()
@@ -27,19 +42,74 @@ class DB:
         return response
 
     @staticmethod
-    def fetch_one(table_name: str, **kwargs):
-        request = "WHERE" + " AND ".join(f"{arg} = ?" for arg in kwargs.keys()) if kwargs else ""
+    def delete_one(table_name: str, **kwargs):
+        where_request = DB.create_where_request(**kwargs)
 
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+            cur.execute(f"""
+            DELETE FROM {table_name} {where_request}
+            """, tuple(kwargs.values()))
+
+    @staticmethod
+    def delete_many(table_name: str, **kwargs):
+        where_request = DB.create_where_request(kwargs)
+
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+            cur.executemany(f"""
+            DELETE FROM {table_name} {where_request}
+            """, tuple(kwargs.values()))
+
+    @staticmethod
+    def update_one(table_name: str, row_info: dict, new_values: dict):
+        where_request = DB.create_where_request(**row_info)
+        set_request = DB.create_set_request(**new_values)
         with sqlite3.connect(database_path) as conn:
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
             cur.execute(f"""
-            SELECT * FROM {table_name} {request}
+            UPDATE {table_name} {set_request} {where_request}
+            """, tuple(row_info.values()) + tuple(new_values.values()))
+
+    @staticmethod
+    def update_many(table_name: str, row_info: dict, new_values: dict):
+        where_request = DB.create_where_request(**row_info)
+        set_request = DB.create_set_request(**new_values)
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.executemany(f"""
+            UPDATE {table_name} {set_request} {where_request}
+            """, tuple(row_info.values()) + tuple(new_values.values()))
+
+    @staticmethod
+    def insert_one(table_name: str, **kwargs):
+        insert_request = DB.create_insert_request()
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
+            INSERT INTO {table_name} {insert_request}
             """, tuple(kwargs.values()))
 
-            response = cur.fetchone()
+    @staticmethod
+    def create_where_request(**kwargs):
+        return "WHERE" + " AND ".join(f"{arg} = ?" for arg in kwargs.keys()) if kwargs else ""
 
-        return response
+    @staticmethod
+    def create_set_request(**kwargs):
+        return "SET" + ", ".join(f"{arg} = ?" for arg in kwargs.keys()) if kwargs else ""
+
+    @staticmethod
+    def create_insert_request(**kwargs):
+        if not kwargs:
+            return ""
+
+        request = "(" + ", ".join(f"{arg} = ?" for arg in kwargs.keys()) + ")"
+        request += "VALUES (" + ", ".join(["?" for _ in range(len(kwargs))]) + ")"
+
+        return request
 
     @staticmethod
     def initialize():

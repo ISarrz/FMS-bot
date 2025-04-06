@@ -2,6 +2,10 @@ from typing import List
 from dataclasses import dataclass
 from modules.database_api.database.database import DB
 from modules.database_api.event import Event
+from typing import List
+from dataclasses import dataclass
+from modules.database_api.database.database import DB
+
 
 @dataclass
 class CnGroup:
@@ -16,79 +20,65 @@ class DbGroup(CnGroup):
     about: str
 
 
+
+
 class GroupDeleter:
-    pass
-
-
-class GroupUpdater:
-    pass
+    @staticmethod
+    def delete(group):
+        DB.delete_one(Group.table_name, id=group.id)
 
 
 class GroupFetcher:
-    def __call__(self, *args, **kwargs):
-        kwargs_keys = set(kwargs.keys())
-
-        if kwargs_keys == {"id"}:
-            self._fetch_by_id(kwargs["id"])
-
-        elif kwargs_keys == {"name"}:
-            self._fetch_by_name(kwargs["name"])
-
-        elif kwargs_keys == {"about"}:
-            self._fetch_by_about(kwargs["about"])
-
-        elif kwargs.get('all', False):
-            self._fetch_all()
-
-        raise "Invalid arguments in Group fetch"
-
-    def all(self) -> List[DbGroup]:
-        return self._fetch_all()
+    @staticmethod
+    def fetch_all() -> List[Group]:
+        return UserFetcher.constructor(DB.fetch_many(User.table_name))
 
     @staticmethod
-    def _fetch_by_id(id) -> DbGroup:
-        return Group.constructor(DB.fetch_one(Group.table_name, id=id))
+    def fetch_by_telegram_id(telegram_id: int):
+        return UserFetcher.constructor(DB.fetch_one(User.table_name, telegram_id=telegram_id))
 
     @staticmethod
-    def _fetch_by_name(name: str) -> DbGroup:
-        return Group.constructor(DB.fetch_one(Group.table_name, name=name))
+    def fetch_by_id(id: int) -> DbUser:
+        return UserFetcher.constructor(DB.fetch_one(User.table_name, id=id))
 
     @staticmethod
-    def _fetch_by_about(about: str) -> DbGroup:
-        return Group.constructor(DB.fetch_one(Group.table_name, about=about))
-
-    @staticmethod
-    def _fetch_all() -> List[DbGroup]:
-        return Group.constructor(DB.fetch_all(Group.table_name))
-
-
-class GroupEvent:
-    pass
-
-    def __call__(self, *args, **kwargs):
-        pass
-
-    def all(self) -> List[DbGroup]:
-
-
-class Group:
-    table_name = "groups"
-    event = GroupEvent()
-    fetch = GroupFetcher()
-    delete = GroupDeleter()
-    update = GroupUpdater()
-
-    @staticmethod
-    def constructor(info):
+    def constructor(info) -> DbUser | List[DbUser] | None:
         if not info:
             return None
 
         if isinstance(info, list):
-            return [Group.constructor(group_info) for group_info in info]
+            return [UserFetcher.constructor(user_info) for user_info in info]
 
         else:
-            return DbGroup(
-                id=info['id'],
-                name=info['first_name'],
-                about=info['last_name'],
-            )
+            return DbUser(id=info['id'], telegram_id=info['telegram_id'])
+
+
+class User:
+    table_name = "users"
+    user: DbUser
+
+    def __init__(self, *args, **kwargs):
+        kwargs_keys = set(kwargs.keys())
+
+        if kwargs_keys == {"id"}:
+            self.user = UserFetcher.fetch_by_id(kwargs["id"])
+
+        elif kwargs_keys == {"telegram_id"}:
+            self.user = UserFetcher.fetch_by_telegram_id(kwargs["telegram_id"])
+
+        raise "Invalid arguments in User fetch"
+
+    @staticmethod
+    def all():
+        return UserFetcher.fetch_all()
+
+    @property
+    def id(self) -> int:
+        return self.user.id
+
+    @property
+    def telegram_id(self) -> int:
+        return self.user.telegram_id
+
+    def __del__(self):
+        UserDeleter.delete(self.user)
