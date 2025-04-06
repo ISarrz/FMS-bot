@@ -101,6 +101,19 @@ def fetch_group_by_name(name: str):
     return response
 
 
+def fetch_group_by_parent_id_and_name(parent_id: int, name: str):
+    with sqlite3.connect(database_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(f"""
+                SELECT groups.id, groups.name, groups.about FROM groups_relations JOIN groups ON groups_relations.child_id = groups.id 
+                WHERE groups_relations.parent_id = {parent_id} AND groups.name = '{name}'
+                """)
+        response = cur.fetchone()
+
+    return DbGroup(id=response['id'], name=response['name'], about=response['about'])
+
+
 def fetch_parent_by_id(child_id: int):
     with sqlite3.connect(database_path) as conn:
         conn.row_factory = sqlite3.Row
