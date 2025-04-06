@@ -2,6 +2,7 @@ from modules.telegram_int.admin.events_menu import *
 from modules.telegram_int.admin.groups_menu import *
 from modules.logger import *
 from modules.logger.logger import async_logger, logger
+
 ADMIN_CHAT_ID = get_config_field("admin_chat_id")
 
 
@@ -59,13 +60,33 @@ async def settings_menu_response(update: Update, context: ContextTypes.DEFAULT_T
     user = fetch_class_user_by_telegram_id(telegram_id)
     notifications_state = 1 - int(fetch_user_notifications(user.id)['value'])
     if income == "groups":
-        await update_settings_groups_mode_menu(update, context, query)
+        delete_user_groups(user.id)
+        await update_settings_grade_chose(update, context, query)
         return 1
 
     if income == "notifications":
         update_notifications_by_id(user.id, notifications_state)
         await update_settings_menu(update, context, query)
         return 0
+
+
+async def update_settings_grade_chose(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQueryHandler):
+    sheet = await get_settings_groups_menu_sheet(update, context)
+    keyboard = [
+        [InlineKeyboardButton(text="10", callback_data="10"),
+         InlineKeyboardButton(text="11", callback_data="11"),
+         ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.edit_message_text(text="Выберите класс", reply_markup=keyboard)
+
+
+async def settings_grade_chose_response(update: Update, context: ContextTypes.DEFAULT_TYPE,
+                                        query: CallbackQueryHandler):
+    query = update.callback_query
+    await query.answer()
+    income = query.data
+    context.chat_data
 
 
 @async_logger
@@ -339,10 +360,9 @@ ConversationHandler_settings = ConversationHandler(
 
     states={
         0: [CallbackQueryHandler(settings_menu_response)],
-        1: [CallbackQueryHandler(settings_groups_mode_menu_response)],
-        2: [CallbackQueryHandler(settings_delete_group_response)],
-        3: [CallbackQueryHandler(settings_add_group_response)],
-
+        1: [CallbackQueryHandler(settings_grade_chose_response)],
+        2: [CallbackQueryHandler(settings_class_chose_response)],
+        3: [CallbackQueryHandler(settings_academ_group_chose_response)]
     },
 
     fallbacks=[MessageHandler(filters.COMMAND, cancel)],

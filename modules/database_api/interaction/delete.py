@@ -49,6 +49,21 @@ def delete_user_group(user_id: int, group_id):
         DELETE FROM users_groups WHERE user_id = {user_id} AND group_id = {group_id}
         """)
 
+def delete_user_groups(user_id: int):
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        DELETE FROM users_groups WHERE user_id = {user_id} 
+        """)
+
+    with sqlite3.connect(database_path) as conn:
+        cur = conn.cursor()
+        cur.execute(f"""
+        DELETE FROM users_updates WHERE user_id = {user_id} 
+        """)
+
+
+
 
 def delete_users_updates_by_id(users_updates_id: int):
     with sqlite3.connect(database_path) as conn:
