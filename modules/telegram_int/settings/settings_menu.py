@@ -306,7 +306,7 @@ async def settings_add_group_response(update: Update, context: ContextTypes.DEFA
         context.chat_data['sheet'] -= 1
         context.chat_data['sheet'] += len(sheets)
         context.chat_data['sheet'] %= len(sheets)
-        await update_settings_add_group_menu(update, context)
+        await update_settings_add_group_menu(update, context, query)
         return 3
 
     if income == RIGHT_ARROW:
