@@ -12,7 +12,7 @@ def parse_all():
     for file_name in os.listdir(downloads_path):
         parse_file(file_name)
 
-
+@logger
 def parse_file(file_name):
     download_path = os.path.join(downloads_path, file_name)
     parsed_path = os.path.join(parsed_files_path, file_name)
@@ -33,7 +33,7 @@ def parse_file(file_name):
 
     os.replace(download_path, parsed_path)
 
-
+@logger
 def parse_sheet(sheet):
     table = Table(sheet)
     # parent_group_name = find_pattern(sheet.title, groups_patterns)
@@ -53,7 +53,7 @@ def parse_sheet(sheet):
 
     return groups_sequences
 
-
+@logger
 def get_sequence(table, sheet, lesson_number_col, time_col, row, col):
     school_group = 'ФМШ'
     sheet_group = find_pattern(sheet.title, groups_patterns)
@@ -91,12 +91,19 @@ def get_sequence(table, sheet, lesson_number_col, time_col, row, col):
         table.matrix[row][col] = "None"
 
         row += 1
+    # while events and events[-1].about == 'None':
+    #     events.pop()
+
 
     return groups, events
 
-
+@logger
 def parse_event(time, value):
-    start, end = time.replace(".", ":").split("-")
+    try:
+        start, end = time.replace(".", ":").split("-")
+    except Exception:
+        start, end = '0:0', '0:0'
+
     start = start.strip()
     end = end.strip()
     lines = value.split("\n")
@@ -107,7 +114,7 @@ def parse_event(time, value):
     event = Event(name=name, about=about, date="None", start=start, end=end, owner=owner, place=place)
     return event
 
-
+@logger
 def insert_into_database(groups_sequences):
     for groups, events in groups_sequences:
 
