@@ -67,9 +67,14 @@ def get_sequence(table, sheet, lesson_number_col, time_col, row, col):
         gr = fetch_group_by_name_and_parent_id("Академическая группа", groups[-1].id)
         groups.append(fetch_class_group_by_id(gr['id']))
 
+    group_name = find_pattern(table.matrix[row][col], groups_patterns)
+    parent_id = groups[-1].id
+    group = fetch_group_by_name_and_parent_id(group_name, parent_id)
+    groups.append(DbGroup(id=group['id'], name=group['name'], about=group['about']))
+    row += 1
     events = []
     while row < table.height:
-        if table.matrix[row][lesson_number_col] == "None":
+        if table.matrix[row][lesson_number_col] == "None" and (table.matrix[row][col] == "None" or find_pattern(table.matrix[row][col], groups_patterns)):
             break
 
         group_name = find_pattern(table.matrix[row][col], groups_patterns)
@@ -81,6 +86,8 @@ def get_sequence(table, sheet, lesson_number_col, time_col, row, col):
             elif groups[-1].name != group_name:
                 parent_id = groups[-1].id
                 group = fetch_group_by_name_and_parent_id(group_name, parent_id)
+                if group is None:
+                    pass
                 groups.append(DbGroup(id=group['id'], name=group['name'], about=group['about']))
 
         else:
@@ -117,6 +124,8 @@ def parse_event(time, value):
 @logger
 def insert_into_database(groups_sequences):
     for groups, events in groups_sequences:
+        while events and events[-1].about == "None":
+            events.pop()
 
         for event in events:
             # adding event in database

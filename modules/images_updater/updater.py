@@ -60,6 +60,7 @@ def normalize_string(s):
     return response
 
 
+
 def render_group(group: DbGroup, events):
     default_event = events[0]
     events.sort(key=lambda ev: dt.datetime.strptime(ev.start, "%H:%M"))
@@ -83,7 +84,12 @@ def render_group(group: DbGroup, events):
 
     for i in range(len(events)):
         event_number = i + 1
-        matrix[event_number][0] = f"{events[i].start}\n{event_number}\n{events[i].end}"
+        # no time
+        if events[i].start == events[i].end:
+            matrix[event_number][0] = "None"
+        else:
+            matrix[event_number][0] = f"{events[i].start}\n{event_number}\n{events[i].end}"
+
         matrix[event_number][1] = normalize_string(events[i].about)
 
     table = Table(matrix=matrix, cell_style=main_style)
@@ -97,11 +103,19 @@ def render_group(group: DbGroup, events):
     lines_styles = [time_text, numbers_text, time_text]
     table.set_area_lines_style((1, 0), (len(matrix) - 1, 0), lines_styles)
 
-    for i in range(2, len(matrix)):
-        for j in range(1, len(matrix[i])):
+    for i in range(1, len(matrix)):
+        for j in range(len(matrix[i])):
             if matrix[i][j] == "None" or matrix[i][j] is None:
                 matrix[i][j] = ''
                 table.set_cell_style((i, j), black_empty_style)
+
+    for i in range(2, len(matrix) - 1):
+        for j in range(1, len(matrix[i])):
+            if matrix[i][j] == matrix[i + 1][j]:
+                try:
+                    table.unite_cells((i, j), (i + 1, j))
+                except Exception:
+                    pass
 
     table.autoformat()
     picture = table.draw(margin=10)

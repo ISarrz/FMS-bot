@@ -12,57 +12,72 @@ with sqlite3.connect(pth.database_path) as conn:
     cur = conn.cursor()
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        telegram_id INTEGER
-        )""")
+                CREATE TABLE IF NOT EXISTS users
+                (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    telegram_id INTEGER
+                )""")
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        about TEXT,
-        date TEXT,
-        start TEXT,
-        end TEXT,
-        owner TEXT,
-        place TEXT    
-        )""")
+                CREATE TABLE IF NOT EXISTS events
+                (
+                    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name  TEXT,
+                    about TEXT,
+                    date  TEXT,
+                    start TEXT,
+                    end   TEXT,
+                    owner TEXT,
+                    place TEXT
+                )""")
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS groups (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        about TEXT
-        )""")
+                CREATE TABLE IF NOT EXISTS groups
+                (
+                    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name  TEXT,
+                    about TEXT
+                )""")
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS groups_relations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        parent_id INTEGER REFERENCES groups,
-        child_id INTEGER REFERENCES groups
-        )""")
+                CREATE TABLE IF NOT EXISTS groups_relations
+                (
+                    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                    parent_id INTEGER REFERENCES groups,
+                    child_id  INTEGER REFERENCES groups
+                )""")
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS groups_events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        group_id INTEGER REFERENCES groups,
-        event_id INTEGER REFERENCES events
-        )""")
+                CREATE TABLE IF NOT EXISTS groups_events
+                (
+                    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    group_id INTEGER REFERENCES groups,
+                    event_id INTEGER REFERENCES events
+                )""")
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS users_groups (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER REFERENCES users,
-        group_id INTEGER REFERENCES groups
-        )""")
+                CREATE TABLE IF NOT EXISTS users_groups
+                (
+                    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id  INTEGER REFERENCES users,
+                    group_id INTEGER REFERENCES groups
+                )""")
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS images (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        image BLOB,
-        date TEXT,
-        group_id INTEGER REFERENCES groups
-        )""")
+                CREATE TABLE IF NOT EXISTS images
+                (
+                    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    image    BLOB,
+                    date     TEXT,
+                    group_id INTEGER REFERENCES groups
+                )""")
 
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS users_updates
+                (
+                    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date     TEXT,
+                    group_id INTEGER REFERENCES groups,
+                    user_id  INTEGER REFERENCES users
+                )""")
     print("Database initialized")
