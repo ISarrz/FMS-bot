@@ -63,7 +63,7 @@ async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="No Access")
         return
 
-    create_backup()
+    save_dump()
     dump_name = "database_dump.db"
     file_path = os.path.join(database_dumps_path, dump_name)
 
