@@ -31,6 +31,6 @@ def data_update_run_repeat():
 
 
 if __name__ == "__main__":
-    # data_update_run_once()
-    data_update_run_repeat()
+    data_update_run_once()
+    # data_update_run_repeat()
     # run_repeat()
