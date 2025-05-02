@@ -121,7 +121,3 @@ if __name__ == "__main__":
     group.about = 'Параллель 11 класс'
     group = Group(name="11 класс")
     print(group.about)
-    # DB.update_one(Group.table_name, {"id": 2, "about":""}, {"about": '123'})
-    # print(group.id)
-    # group = DbGroup(id=1, name="test", about="test")
-    # print(dict(group))

@@ -1,7 +1,7 @@
 from typing import List
 from dataclasses import dataclass
 from modules.database_api.database.database import DB
-from modules.database_api.group.Group import Group
+from modules.database_api.group.group import Group
 
 
 @dataclass
@@ -16,9 +16,15 @@ class DbUser(CnUser):
 
 
 class UserFetcher:
+    users_groups_table = 'users_groups'
+
     @staticmethod
     def fetch_all() -> List[DbUser]:
         return UserFetcher.constructor(DB.fetch_many(User.table_name))
+
+    @staticmethod
+    def fetch_groups(user: DbUser) -> List[Group]:
+        user_groups = DB.fetch_many(UserFetcher.users_groups_table, user_id=user.id)
 
     @staticmethod
     def fetch_by_telegram_id(telegram_id: int):
@@ -48,6 +54,7 @@ class UserDeleter:
 
 class User:
     table_name = "users"
+    users_groups_table_name = "users_groups"
 
     _user: DbUser
 
@@ -80,7 +87,7 @@ class User:
 
     @property
     def groups(self) -> List[Group]:
-        pass
+        return UserFetcher.fetch_groups(self._user)
 
     def delete(self):
         UserDeleter.delete(self._user)
