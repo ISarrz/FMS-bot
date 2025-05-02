@@ -6,7 +6,7 @@ from modules.logger.logger import *
 from modules.telegram_int.admin.admin_panel import ConversationHandler_admin_panel
 from modules.telegram_int.settings.settings_menu import ConversationHandler_settings
 from modules.telegram_int.timetable.timetable_menu import ConversationHandler_timetable
-
+from modules.database_api.service.dumps import save_dump
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -58,6 +58,33 @@ async def info_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         insert_user_notifications_by_id(user_id)
 
 
+async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat.id != get_config_field('admin_chat_id'):
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="No Access")
+        return
+
+    save_dump()
+    dump_name = "database_dump.db"
+    file_path = os.path.join(database_dumps_path, dump_name)
+
+    with open(file_path, "r") as sql_file:
+        await context.bot.send_document(chat_id=update.effective_chat.id, document=sql_file)
+
+
+pass
+
+
+# text = text_reader.read(telegram_info_message_path)
+# await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+#
+# telegram_id = update.effective_user.id
+# if fetch_user_by_telegram_id(telegram_id):
+#     fetch_class_user_by_telegram_id(telegram_id)
+# else:
+#     user_id = insert_user(telegram_id)
+#     insert_user_notifications_by_id(user_id)
+
+
 @async_logger
 async def update_user_info(context: CallbackContext):
     users = fetch_all_class_users()
@@ -95,6 +122,7 @@ def main():
 
     application.add_handler(CommandHandler('start', info_message))
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
+    application.add_handler(CommandHandler('get_database', get_database))
     application.add_handler(ConversationHandler_admin_panel, 1)
     application.add_handler(ConversationHandler_settings, 2)
     application.add_handler(ConversationHandler_timetable, 3)
