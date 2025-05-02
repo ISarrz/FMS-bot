@@ -1,15 +1,10 @@
 import sqlite3
 
-from modules.database_api.user import User
-from modules.database_api.group import Group
-from modules.database_api.event import Event
 from modules.files_api.paths import database_path
+import re
 
 
 class DB:
-    user = User()
-    group = Group()
-    event = Event()
 
     @staticmethod
     def fetch_one(table_name: str, **kwargs):
@@ -70,7 +65,7 @@ class DB:
             cur = conn.cursor()
             cur.execute(f"""
             UPDATE {table_name} {set_request} {where_request}
-            """, tuple(row_info.values()) + tuple(new_values.values()))
+            """, tuple(new_values.values()) + tuple(row_info.values()))
 
     @staticmethod
     def update_many(table_name: str, row_info: dict, new_values: dict):
@@ -81,7 +76,15 @@ class DB:
             cur = conn.cursor()
             cur.executemany(f"""
             UPDATE {table_name} {set_request} {where_request}
-            """, tuple(row_info.values()) + tuple(new_values.values()))
+            """, tuple(new_values.values()) + tuple(row_info.values()))
+
+    @staticmethod
+    def find_pattern(text, patterns):
+        for pattern in patterns:
+            if re.fullmatch(pattern[1], text, re.IGNORECASE):
+                return pattern[0]
+
+        return None
 
     @staticmethod
     def insert_one(table_name: str, **kwargs):
@@ -95,11 +98,11 @@ class DB:
 
     @staticmethod
     def create_where_request(**kwargs):
-        return "WHERE" + " AND ".join(f"{arg} = ?" for arg in kwargs.keys()) if kwargs else ""
+        return "WHERE " + " AND ".join(f"{arg} = ?" for arg in kwargs.keys()) if kwargs else ""
 
     @staticmethod
     def create_set_request(**kwargs):
-        return "SET" + ", ".join(f"{arg} = ?" for arg in kwargs.keys()) if kwargs else ""
+        return "SET " + ", ".join(f"{arg} = ?" for arg in kwargs.keys()) if kwargs else ""
 
     @staticmethod
     def create_insert_request(**kwargs):
@@ -130,10 +133,11 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id INTEGER
-            )""")
+                        CREATE TABLE IF NOT EXISTS users
+                        (
+                            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                            telegram_id INTEGER
+                        )""")
 
     @staticmethod
     def _create_users_groups_table():
@@ -141,11 +145,12 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS users_groups (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER REFERENCES users,
-            group_id INTEGER REFERENCES groups
-            )""")
+                        CREATE TABLE IF NOT EXISTS users_groups
+                        (
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id  INTEGER REFERENCES users,
+                            group_id INTEGER REFERENCES groups
+                        )""")
 
     @staticmethod
     def _create_events_table():
@@ -153,16 +158,17 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            about TEXT,
-            date TEXT,
-            start TEXT,
-            end TEXT,
-            owner TEXT,
-            place TEXT
-            )""")
+                        CREATE TABLE IF NOT EXISTS events
+                        (
+                            id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name  TEXT,
+                            about TEXT,
+                            date  TEXT,
+                            start TEXT,
+                            end   TEXT,
+                            owner TEXT,
+                            place TEXT
+                        )""")
 
     @staticmethod
     def _create_groups_table():
@@ -170,11 +176,12 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS groups (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            about TEXT
-            )""")
+                        CREATE TABLE IF NOT EXISTS groups
+                        (
+                            id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name  TEXT,
+                            about TEXT
+                        )""")
 
     @staticmethod
     def _create_groups_relations_table():
@@ -182,11 +189,12 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS groups_relations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            parent_id INTEGER REFERENCES groups,
-            child_id INTEGER REFERENCES groups
-            )""")
+                        CREATE TABLE IF NOT EXISTS groups_relations
+                        (
+                            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                            parent_id INTEGER REFERENCES groups,
+                            child_id  INTEGER REFERENCES groups
+                        )""")
 
     @staticmethod
     def _create_groups_events_table():
@@ -194,11 +202,12 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS groups_events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            group_id INTEGER REFERENCES groups,
-            event_id INTEGER REFERENCES events
-            )""")
+                        CREATE TABLE IF NOT EXISTS groups_events
+                        (
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            group_id INTEGER REFERENCES groups,
+                            event_id INTEGER REFERENCES events
+                        )""")
 
     @staticmethod
     def _create_images_table():
@@ -206,12 +215,13 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS images (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            image BLOB,
-            date TEXT,
-            group_id INTEGER REFERENCES groups
-            )""")
+                        CREATE TABLE IF NOT EXISTS images
+                        (
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            image    BLOB,
+                            date     TEXT,
+                            group_id INTEGER REFERENCES groups
+                        )""")
 
     @staticmethod
     def _create_logs_table():
@@ -219,11 +229,12 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            value TEXT
-            )""")
+                        CREATE TABLE IF NOT EXISTS logs
+                        (
+                            id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name  TEXT,
+                            value TEXT
+                        )""")
 
     @staticmethod
     def _create_users_notifications_table():
@@ -231,11 +242,12 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS users_notifications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id parent_id INTEGER REFERENCES users,
-            value INTEGER
-            )""")
+                        CREATE TABLE IF NOT EXISTS users_notifications
+                        (
+                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id parent_id INTEGER REFERENCES users,
+                            value   INTEGER
+                        )""")
 
     @staticmethod
     def _create_users_updates_table():
@@ -243,9 +255,10 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS users_updates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT,
-            group_id INTEGER REFERENCES groups,
-            user_id INTEGER REFERENCES users
-            )""")
+                        CREATE TABLE IF NOT EXISTS users_updates
+                        (
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            date     TEXT,
+                            group_id INTEGER REFERENCES groups,
+                            user_id  INTEGER REFERENCES users
+                        )""")

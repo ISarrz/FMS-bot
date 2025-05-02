@@ -1,6 +1,7 @@
 from typing import List
 from dataclasses import dataclass
 from modules.database_api.database.database import DB
+from modules.database_api.group.Group import Group
 
 
 @dataclass
@@ -12,12 +13,6 @@ class CnUser:
 class DbUser(CnUser):
     id: int
     telegram_id: int
-
-
-class UserDeleter:
-    @staticmethod
-    def delete(user):
-        DB.delete_one(User.table_name, id=user.id)
 
 
 class UserFetcher:
@@ -45,25 +40,31 @@ class UserFetcher:
             return DbUser(id=info['id'], telegram_id=info['telegram_id'])
 
 
+class UserDeleter:
+    @staticmethod
+    def delete(user):
+        DB.delete_one(User.table_name, id=user.id)
+
+
 class User:
     table_name = "users"
-    id: int
-    telegram_id: int
-    user: DbUser
+
+    _user: DbUser
 
     def __init__(self, *args, **kwargs):
         kwargs_keys = set(kwargs.keys())
 
         if kwargs_keys == {"id"}:
-            self.user = UserFetcher.fetch_by_id(kwargs["id"])
+            self._user = UserFetcher.fetch_by_id(kwargs["id"])
 
         elif kwargs_keys == {"telegram_id"}:
-            self.user = UserFetcher.fetch_by_telegram_id(kwargs["telegram_id"])
+            self._user = UserFetcher.fetch_by_telegram_id(kwargs["telegram_id"])
 
         elif kwargs_keys == {"db_user"}:
-            self.user = kwargs["db_user"]
+            self._user = kwargs["db_user"]
 
-        raise "Invalid arguments in User fetch"
+        else:
+            raise "Invalid arguments in User fetch"
 
     @staticmethod
     def all():
@@ -71,11 +72,15 @@ class User:
 
     @property
     def id(self) -> int:
-        return self.user.id
+        return self._user.id
 
     @property
     def telegram_id(self) -> int:
-        return self.user.telegram_id
+        return self._user.telegram_id
 
-    def __del__(self):
-        UserDeleter.delete(self.user)
+    @property
+    def groups(self) -> List[Group]:
+        pass
+
+    def delete(self):
+        UserDeleter.delete(self._user)
