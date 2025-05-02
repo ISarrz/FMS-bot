@@ -80,4 +80,26 @@ with sqlite3.connect(pth.database_path) as conn:
                     group_id INTEGER REFERENCES groups,
                     user_id  INTEGER REFERENCES users
                 )""")
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS logs
+                (
+                    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name  TEXT,
+                    value TEXT
+                )""")
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS users_notifications
+                (
+                    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id parent_id INTEGER REFERENCES users,
+                    value   INTEGER
+                )""")
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS users_updates
+                (
+                    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date     TEXT,
+                    group_id INTEGER REFERENCES groups,
+                    user_id  INTEGER REFERENCES users
+                )""")
     print("Database initialized")

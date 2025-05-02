@@ -6,7 +6,7 @@ from modules.logger.logger import *
 from modules.telegram_int.admin.admin_panel import ConversationHandler_admin_panel
 from modules.telegram_int.settings.settings_menu import ConversationHandler_settings
 from modules.telegram_int.timetable.timetable_menu import ConversationHandler_timetable
-from modules.database_api.service.dumps import save_dump
+from modules.database_api.service.dumps import create_backup
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -63,11 +63,11 @@ async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="No Access")
         return
 
-    save_dump()
+    create_backup()
     dump_name = "database_dump.db"
     file_path = os.path.join(database_dumps_path, dump_name)
 
-    with open(file_path, "r") as sql_file:
+    with open(file_path, "rb") as sql_file:
         await context.bot.send_document(chat_id=update.effective_chat.id, document=sql_file)
 
 
