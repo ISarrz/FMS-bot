@@ -109,7 +109,7 @@ def render_group(group: DbGroup, events):
                 matrix[i][j] = ''
                 table.set_cell_style((i, j), black_empty_style)
 
-    for i in range(2, len(matrix) - 1):
+    for i in range(1, len(matrix) - 1):
         for j in range(1, len(matrix[i])):
             if matrix[i][j] == matrix[i + 1][j]:
                 try:
