@@ -95,16 +95,15 @@ async def update_user_info(context: CallbackContext):
 
 
 async def update_user(context, user):
-    user_groups = fetch_user_groups_by_id(user.id)
-    user_groups = [fetch_class_group_by_id(group['id']) for group in user_groups]
     updated_dates = []
     for date in get_current_string_dates():
-
+        user_groups = get_user_groups(user)
         updated_groups = fetch_user_update_groups_by_date(user.id, date)
         updated_groups = [fetch_class_group_by_id(group['id']) for group in updated_groups]
+        user_groups = [i for i in user_groups if i not in updated_groups]
 
         for group in user_groups:
-            if group not in updated_groups and fetch_image_id_by_date_and_group_id(date, group.id):
+            if fetch_image_id_by_date_and_group_id(date, group.id):
                 updated_dates.append(date)
                 insert_user_updates(user.id, date, group.id)
 
@@ -114,6 +113,12 @@ async def update_user(context, user):
     if updated_dates and notif_state['value']:
         text = 'Доступно расписание на: ' + ", ".join(updated_dates)
         await context.bot.send_message(chat_id=user.telegram_id, text=text)
+
+
+async def get_user_groups(user):
+    user_groups = fetch_user_groups_by_id(user.id)
+    user_groups = [fetch_class_group_by_id(group['id']) for group in user_groups]
+    return user_groups
 
 
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
