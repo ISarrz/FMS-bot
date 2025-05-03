@@ -97,7 +97,7 @@ async def update_user_info(context: CallbackContext):
 async def update_user(context, user):
     updated_dates = []
     for date in get_current_string_dates():
-        user_groups = get_user_groups(user)
+        user_groups = await get_user_groups(user)
         updated_groups = fetch_user_update_groups_by_date(user.id, date)
         updated_groups = [fetch_class_group_by_id(group['id']) for group in updated_groups]
         user_groups = [i for i in user_groups if i not in updated_groups]
