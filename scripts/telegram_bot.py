@@ -43,7 +43,7 @@ async def send_logs(context: CallbackContext):
     logs_chat_id = get_config_field('logs_chat_id')
     logs = fetch_all_logs()
     for log in logs:
-        await  context.bot.send_message(chat_id=logs_chat_id, text=log['value'])
+        await context.bot.send_message(chat_id=logs_chat_id, text=log['value'])
         delete_logs_by_id(log['id'])
 
 
