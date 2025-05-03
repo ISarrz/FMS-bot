@@ -13,7 +13,9 @@ from modules.images_updater import updater
 
 @logger
 def run_data_update():
+    print('download')
     asyncio.run(downloader.run())
+    print('parse')
     parser.parse_all()
     cleaner.clean_all()
     updater.update()
