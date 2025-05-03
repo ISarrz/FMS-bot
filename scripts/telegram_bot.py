@@ -87,6 +87,7 @@ pass
 
 @async_logger
 async def update_user_info(context: CallbackContext):
+    print('user_update')
     users = fetch_all_class_users()
 
     for user in users:
