@@ -10,7 +10,7 @@ from modules.database_api.interaction.delete import *
 
 with sqlite3.connect(pth.database_path) as conn:
     cur = conn.cursor()
-
+    cur.execute("PRAGMA journal_mode=WAL")
     cur.execute("""
                 CREATE TABLE IF NOT EXISTS users
                 (
