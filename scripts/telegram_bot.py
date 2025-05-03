@@ -118,7 +118,7 @@ def main():
     application.add_handler(ConversationHandler_timetable, 3)
 
     job_deque = application.job_queue
-    job_deque.run_repeating(update_user_info, 10)
+    job_deque.run_repeating(update_user_info, 60)
     job_deque.run_repeating(send_logs, 60)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
