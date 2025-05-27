@@ -41,20 +41,21 @@ def parse_sheet(sheet):
     groups_sequences = []
 
     # finding lessons number and time column
-    lesson_number_col = table.find_cell_by_regular_pattern(r"^\s{0,}урок\s{0,}$")[1]
+    # lesson_number_col = table.find_cell_by_regular_pattern(r"^\s{0,}урок\s{0,}$")[1]
+    # lesson_number_col = table.find_cell_by_regular_pattern(r"^\s{0,}урок\s{0,}$")[1]
     time_col = table.find_cell_by_regular_pattern(r"^\s{0,}время\s{0,}$")[1]
 
     for row in range(table.height):
         for col in range(table.width):
             if find_pattern(table.matrix[row][col], groups_patterns):
-                groups, events = get_sequence(table, sheet, lesson_number_col, time_col, row, col)
+                groups, events = get_sequence(table, sheet, time_col, row, col)
                 if (groups, events) not in groups_sequences:
                     groups_sequences.append((groups, events))
 
     return groups_sequences
 
 @logger
-def get_sequence(table, sheet, lesson_number_col, time_col, row, col):
+def get_sequence(table, sheet, time_col, row, col):
     school_group = 'ФМШ'
     sheet_group = find_pattern(sheet.title, groups_patterns)
     groups = [
@@ -74,7 +75,7 @@ def get_sequence(table, sheet, lesson_number_col, time_col, row, col):
     row += 1
     events = []
     while row < table.height:
-        if table.matrix[row][lesson_number_col] == "None" and (table.matrix[row][col] == "None" or find_pattern(table.matrix[row][col], groups_patterns)):
+        if table.matrix[row][time_col] == "None" and (table.matrix[row][col] == "None" or find_pattern(table.matrix[row][col], groups_patterns)):
             break
 
         group_name = find_pattern(table.matrix[row][col], groups_patterns)
