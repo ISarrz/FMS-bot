@@ -34,7 +34,7 @@ class LogFetcher:
 
     @staticmethod
     def fetch_by_id(id: int) -> DbLog:
-        return LogFetcher.constructor(DB.fetch_many(DB.logs_table_name, id=id))
+        return LogFetcher.constructor(DB.fetch_one(DB.logs_table_name, id=id))
 
     @staticmethod
     def constructor(info):

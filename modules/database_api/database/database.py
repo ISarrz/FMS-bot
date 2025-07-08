@@ -259,9 +259,9 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS users_notifications
-            (
-            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id parent_id INTEGER REFERENCES users,
-            notification   TEXT
-            """)
+                        CREATE TABLE IF NOT EXISTS users_notifications
+                        (
+                        id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id parent_id INTEGER REFERENCES users,
+                        value   TEXT
+                        )""")

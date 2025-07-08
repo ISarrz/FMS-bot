@@ -7,6 +7,7 @@ from modules.database_api.database.database import DB
 from modules.database_api.group.group import Group, DbGroup
 from modules.database_api.user.user_settings import UserSettings, UserSettingsUpdater
 from modules.database_api.event.event import Event, DbEvent, EventFetcher
+from modules.database_api.user.user_notification import UserNotification
 
 
 class UserNotFoundError(Exception):
@@ -36,7 +37,6 @@ class DbUser(CnUser):
 
 
 class UserFetcher:
-
     @staticmethod
     def fetch_all() -> List[DbUser]:
         return UserFetcher.constructor(DB.fetch_many(DB.users_table_name))
@@ -72,15 +72,6 @@ class UserFetcher:
     @staticmethod
     def fetch_date_events(user: DbUser, date: str) -> DbEvent | List[DbEvent] | None:
         return EventFetcher.constructor(DB.fetch_many(DB.events_table_name, date=date, user_id=user.id))
-
-    @staticmethod
-    def fetch_notifications(user: DbUser) -> List[str]:
-        notifications = []
-
-        for notification in DB.fetch_many(DB.users_notifications_table_name, user_id=user.id):
-            notifications.append(notification)
-
-        return notifications
 
 
 class UserDeleter:
@@ -163,16 +154,17 @@ class User:
 
     @property
     def notifications(self):
-        return UserFetcher.fetch_notifications(self._user)
+        return UserNotification.user_notifications(user_id=self.id)
 
     @notifications.setter
     def notifications(self, notifications: List[str] | str):
-        UserDeleter.delete_notifications(self._user)
+        UserNotification.delete_user_notifications(user_id=self.id)
 
-        UserInserter.insert_notifications(self._user, notifications)
+        for notification in notifications:
+            UserNotification.insert(notification)
 
-    def extract_notifications(self) -> List[str] | None:
-        notifications = UserFetcher.fetch_notifications(self._user)
+    def extract_notifications(self) -> List[UserNotification]:
+        notifications = UserNotification.user_notifications(user_id=self.id)
         UserDeleter.delete_notifications(self._user)
 
         return notifications
@@ -211,14 +203,6 @@ class User:
             UserInserter.insert_notifications(user._user)
 
             return user
-
-    @property
-    def notifications(self) -> bool:
-        return UserFetcher.fetch_notifications(self._user)
-
-    @notifications.setter
-    def notifications(self, value: bool):
-        UserUpdater.update_notifications(self._user, int(value))
 
     def delete(self):
         UserDeleter.delete(self._user)
