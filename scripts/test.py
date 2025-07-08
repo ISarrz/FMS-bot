@@ -1,10 +1,2 @@
-class Class:
-    def __del__(self):
-        print('del')
-
-
-cls = Class()
-
-del cls
-
-pass
+q = dict(name='123')
+print(q)

@@ -5,6 +5,21 @@ import re
 
 
 class DB:
+    users_table_name = "users"
+    users_groups_table_name = "users_groups"
+    users_notifications_table_name = "users_notifications"
+    users_settings_table_name = "users_settings"
+
+    groups_table_name = "groups"
+    groups_relations_table_name = "groups_relations"
+
+    events_table_name = "events"
+
+    images_table_name = "images"
+
+    logs_table_name = "logs"
+
+
 
     @staticmethod
     def fetch_one(table_name: str, **kwargs):
@@ -23,6 +38,8 @@ class DB:
 
     @staticmethod
     def fetch_many(table_name: str, **kwargs):
+        # не доделано, в значения должно подставляться list[tuple]
+
         where_request = DB.create_where_request(**kwargs)
 
         with sqlite3.connect(database_path) as conn:
@@ -48,7 +65,9 @@ class DB:
 
     @staticmethod
     def delete_many(table_name: str, **kwargs):
-        where_request = DB.create_where_request(kwargs)
+        # не доделано, в значения должно подставляться list[tuple]
+
+        where_request = DB.create_where_request(**kwargs)
 
         with sqlite3.connect(database_path) as conn:
             cur = conn.cursor()
@@ -69,6 +88,8 @@ class DB:
 
     @staticmethod
     def update_many(table_name: str, row_info: dict, new_values: dict):
+        # не доделано, в значения должно подставляться list[tuple]
+
         where_request = DB.create_where_request(**row_info)
         set_request = DB.create_set_request(**new_values)
         with sqlite3.connect(database_path) as conn:
@@ -88,7 +109,7 @@ class DB:
 
     @staticmethod
     def insert_one(table_name: str, **kwargs):
-        insert_request = DB.create_insert_request()
+        insert_request = DB.create_insert_request(**kwargs)
         with sqlite3.connect(database_path) as conn:
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
@@ -109,7 +130,7 @@ class DB:
         if not kwargs:
             return ""
 
-        request = "(" + ", ".join(f"{arg} = ?" for arg in kwargs.keys()) + ")"
+        request = "(" + ", ".join(f"{arg}" for arg in kwargs.keys()) + ") "
         request += "VALUES (" + ", ".join(["?" for _ in range(len(kwargs))]) + ")"
 
         return request
@@ -120,12 +141,10 @@ class DB:
         DB._create_users_groups_table()
         DB._create_events_table()
         DB._create_groups_table()
-        DB._create_groups_events_table()
         DB._create_groups_relations_table()
         DB._create_images_table()
         DB._create_logs_table()
         DB._create_users_notifications_table()
-        DB._create_users_updates_table()
 
     @staticmethod
     def _create_users_table():
@@ -160,14 +179,14 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS events
                         (
-                            id    INTEGER PRIMARY KEY AUTOINCREMENT,
-                            name  TEXT,
-                            about TEXT,
-                            date  TEXT,
-                            start TEXT,
-                            end   TEXT,
-                            owner TEXT,
-                            place TEXT
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name     TEXT,
+                            group_id INTEGER REFERENCES groups,
+                            date     TEXT,
+                            start    TEXT,
+                            end      TEXT,
+                            owner    TEXT,
+                            place    TEXT
                         )""")
 
     @staticmethod
@@ -178,9 +197,8 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS groups
                         (
-                            id    INTEGER PRIMARY KEY AUTOINCREMENT,
-                            name  TEXT,
-                            about TEXT
+                            id   INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name TEXT
                         )""")
 
     @staticmethod
@@ -197,19 +215,6 @@ class DB:
                         )""")
 
     @staticmethod
-    def _create_groups_events_table():
-        with sqlite3.connect(database_path) as conn:
-            cur = conn.cursor()
-
-            cur.execute("""
-                        CREATE TABLE IF NOT EXISTS groups_events
-                        (
-                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
-                            group_id INTEGER REFERENCES groups,
-                            event_id INTEGER REFERENCES events
-                        )""")
-
-    @staticmethod
     def _create_images_table():
         with sqlite3.connect(database_path) as conn:
             cur = conn.cursor()
@@ -217,10 +222,10 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS images
                         (
-                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
-                            image    BLOB,
-                            date     TEXT,
-                            group_id INTEGER REFERENCES groups
+                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id INTEGER REFERENCES users,
+                            date    TEXT,
+                            image   BLOB
                         )""")
 
     @staticmethod
@@ -232,8 +237,20 @@ class DB:
                         CREATE TABLE IF NOT EXISTS logs
                         (
                             id    INTEGER PRIMARY KEY AUTOINCREMENT,
-                            name  TEXT,
                             value TEXT
+                        )""")
+
+    @staticmethod
+    def _create_users_settings_table():
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
+                        CREATE TABLE IF NOT EXISTS users_settings
+                        (
+                            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id       parent_id INTEGER REFERENCES users,
+                            notifications INT
                         )""")
 
     @staticmethod
@@ -242,23 +259,9 @@ class DB:
             cur = conn.cursor()
 
             cur.execute("""
-                        CREATE TABLE IF NOT EXISTS users_notifications
-                        (
-                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-                            user_id parent_id INTEGER REFERENCES users,
-                            value   INTEGER
-                        )""")
-
-    @staticmethod
-    def _create_users_updates_table():
-        with sqlite3.connect(database_path) as conn:
-            cur = conn.cursor()
-
-            cur.execute("""
-                        CREATE TABLE IF NOT EXISTS users_updates
-                        (
-                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
-                            date     TEXT,
-                            group_id INTEGER REFERENCES groups,
-                            user_id  INTEGER REFERENCES users
-                        )""")
+            CREATE TABLE IF NOT EXISTS users_notifications
+            (
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id parent_id INTEGER REFERENCES users,
+            notification   TEXT
+            """)
