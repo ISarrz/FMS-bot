@@ -80,6 +80,14 @@ class Log:
     def insert(value: str):
         LogInserter.insert(value)
 
+    @property
+    def id(self) -> int:
+        return self._log.id
+
+    @property
+    def value(self) -> str:
+        return self._log.value
+
     def delete(self):
         LogDeleter.delete(self._log)
 

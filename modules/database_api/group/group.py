@@ -3,10 +3,7 @@ from __future__ import annotations
 from typing import List
 from dataclasses import dataclass
 from modules.database_api.database.database import DB
-from typing import List
-from dataclasses import dataclass
-from modules.database_api.database.database import DB
-from modules.database_api.event.event import Event, EventFetcher
+
 
 
 class GroupNotFoundError(Exception):
@@ -137,6 +134,14 @@ class GroupFetcher:
     def fetch_date_events(group: DbGroup, date: str):
         return GroupFetcher.constructor(DB.fetch_many(DB.events_table_name, date=date, group_id=group.id))
 
+    @staticmethod
+    def fetch_user_groups(user_id: int) -> List[DbGroup]:
+        groups_id = [info["group_id"] for info in DB.fetch_many(DB.users_groups_table_name, user_id=user_id)]
+        if groups_id:
+            return [GroupFetcher.fetch_by_id(group_id) for group_id in groups_id]
+
+        return []
+
 
 class GroupInserter:
     @staticmethod
@@ -197,6 +202,15 @@ class Group:
 
         return []
 
+    @staticmethod
+    def user_groups(user_id: int) -> List[Group]:
+        groups = GroupFetcher.fetch_user_groups(user_id)
+
+        if groups:
+            return [Group(db_group=group_info) for group_info in groups]
+
+        return []
+
     @property
     def id(self) -> int:
         return self._group.id
@@ -249,11 +263,9 @@ class Group:
             return Group(name=name)
 
     def get_date_events(self, date: str):
-        events = GroupFetcher.fetch_date_events(self._group, date)
-        if events:
-            return [Event(db_event=event_info) for event_info in events]
+        from modules.database_api.event.event import Event
 
-        return None
+        return Event.by_group_and_date(self,date)
 
     def delete(self):
         GroupDeleter.delete(self._group)

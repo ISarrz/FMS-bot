@@ -9,11 +9,12 @@ def clear_database():
 
 
 def test_insert():
-    User.insert(telegram_id=1)
-    user = User(telegram_id=1)
-    print(user.id)
-    print(user.telegram_id)
-    user.delete()
+    user1 = User.insert(telegram_id=1)
+    user2 = User(telegram_id=1)
+
+    assert user1.telegram_id == 1
+    assert user2.telegram_id == 1
+    assert user1.id == user2.id
 
 
 def test_get():
@@ -21,7 +22,7 @@ def test_get():
         user = User(telegram_id=-1)
         print(user.id)
     except UserNotFoundError:
-        print("User not found")
+        print("\nUser not found")
 
 
 def test_insert_existing_user():
@@ -33,14 +34,14 @@ def test_insert_existing_user():
         User.insert(telegram_id=1)
 
     except UserAlreadyExistsError:
-        print("User already exists")
+        print("\nUser already exists")
 
 
 def test_invalid_argument():
     try:
         user = User(name=1)
     except InvalidUserArgumentsError:
-        print("Invalid user arguments")
+        print("\nInvalid user arguments")
 
 
 def test_all():
@@ -48,12 +49,22 @@ def test_all():
     user2 = User.insert(telegram_id=2)
     user3 = User.insert(telegram_id=3)
     users = User.all()
+    print()
     for user in users:
         print(user)
 
 
 def test_user_notifications():
     user = User.insert(telegram_id=1)
-    print(user.notifications)
-    user.notifications = False
+    print()
+    print(user.settings.notifications)
+    user.settings.notifications = False
+    print(user.settings.notifications)
+
+    user.notifications = ["Hello World"]
+    notifications = user.notifications
+    for notification in notifications:
+        print(notification.value)
+        notification.delete()
+
     print(user.notifications)

@@ -1,7 +1,8 @@
 import sqlite3
 
-from modules.files_api.paths import database_path
+from modules.files_api.paths import database_path, database_dump_path
 import re
+import os
 
 
 class DB:
@@ -15,11 +16,31 @@ class DB:
 
     events_table_name = "events"
 
-    images_table_name = "images"
+    timetable_table_name = "timetable"
 
     logs_table_name = "logs"
 
+    @staticmethod
+    def save_backup():
+        # Убедимся, что исходная база существует
+        if not os.path.exists(database_path):
+            raise FileNotFoundError(f"Source database not found")
 
+        with sqlite3.connect(database_path) as src_conn:
+            with sqlite3.connect(database_dump_path) as dest_conn:
+                src_conn.backup(dest_conn, pages=0, progress=None)
+
+    @staticmethod
+    def load_backup():
+        if not os.path.exists(database_dump_path):
+            raise FileNotFoundError(f"Source dump database not found")
+
+        if os.path.exists(database_path):
+            os.remove(database_path)
+
+        with sqlite3.connect(database_dump_path) as src_conn:
+            with sqlite3.connect(database_path) as dest_conn:
+                src_conn.backup(dest_conn, pages=0, progress=None)
 
     @staticmethod
     def fetch_one(table_name: str, **kwargs):
@@ -142,9 +163,11 @@ class DB:
         DB._create_events_table()
         DB._create_groups_table()
         DB._create_groups_relations_table()
-        DB._create_images_table()
+        DB._create_timetable_table()
         DB._create_logs_table()
         DB._create_users_notifications_table()
+        DB._create_users_settings_table()
+        print("Database initialized.")
 
     @staticmethod
     def _create_users_table():
@@ -215,12 +238,12 @@ class DB:
                         )""")
 
     @staticmethod
-    def _create_images_table():
+    def _create_timetable_table():
         with sqlite3.connect(database_path) as conn:
             cur = conn.cursor()
 
             cur.execute("""
-                        CREATE TABLE IF NOT EXISTS images
+                        CREATE TABLE IF NOT EXISTS timetable
                         (
                             id      INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id INTEGER REFERENCES users,
@@ -261,7 +284,13 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_notifications
                         (
-                        id      INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id parent_id INTEGER REFERENCES users,
-                        value   TEXT
+                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id parent_id INTEGER REFERENCES users,
+                            value   TEXT
                         )""")
+
+
+if __name__ == "__main__":
+    # DB.save_backup()
+    # DB.load_backup()
+    pass

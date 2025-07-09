@@ -49,13 +49,13 @@ class UserNotificationFetcher:
             return [UserNotificationFetcher.constructor(notification_info) for notification_info in info]
 
         else:
-            return DbUserNotification(id=info["id"], value=info["value"])
+            return DbUserNotification(id=info["id"],user_id=info["user_id"], value=info["value"])
 
 
 class UserNotificationInserter:
     @staticmethod
-    def insert(value: str):
-        DB.insert_one(DB.users_notifications_table_name, value=value)
+    def insert(user_id: int, value: str):
+        DB.insert_one(DB.users_notifications_table_name, user_id=user_id, value=value)
 
 
 class UserNotificationDeleter:
@@ -75,7 +75,7 @@ class UserNotification:
         if "id" in kwargs.keys():
             self._user_notification = UserNotificationFetcher.fetch_by_id(kwargs["id"])
 
-        elif "db_notification" in kwargs.keys():
+        elif "db_user_notification" in kwargs.keys():
             self._user_notification = kwargs["db_user_notification"]
 
         else:
@@ -93,8 +93,8 @@ class UserNotification:
         return self._user_notification.id
 
     @staticmethod
-    def insert(value: str):
-        UserNotificationInserter.insert(value)
+    def insert(user_id: int, value: str):
+        UserNotificationInserter.insert(user_id, value)
 
     def delete(self):
         UserNotificationDeleter.delete(self._user_notification)

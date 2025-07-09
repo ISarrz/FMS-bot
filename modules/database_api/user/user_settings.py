@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List
 from dataclasses import dataclass
 from modules.database_api.database.database import DB
-from modules.database_api.user.user import User, DbUser
+
 
 
 @dataclass
@@ -31,7 +31,7 @@ class UserSettingsFetcher:
             return [UserSettingsFetcher.constructor(user_info) for user_info in info]
 
         else:
-            return DbUserSettings(notifications=bool(info["notifications"]))
+            return DbUserSettings(id=info["id"],user_id=info["user_id"],notifications=bool(info["notifications"]))
 
 
 class UserSettingsDeleter:
@@ -90,7 +90,7 @@ class UserSettings:
         elif "id" in kwargs:
             self._user_settings = UserSettingsFetcher.fetch_by_id(kwargs["id"])
 
-        elif "notifications" in kwargs:
+        elif "user_id" in kwargs:
             self._user_settings = UserSettingsFetcher.fetch_by_user_id(kwargs["user_id"])
 
         else:
@@ -109,5 +109,6 @@ class UserSettings:
         UserSettingsDeleter.delete(self._user_settings)
 
     @staticmethod
-    def insert(user: DbUser):
-        DB.insert_one(DB.users_settings_table_name, user_id=user.id, notifications=1)
+    def insert(user_id:int):
+        DB.insert_one(DB.users_settings_table_name, user_id=user_id, notifications=1)
+        return UserSettings(user_id=user_id)

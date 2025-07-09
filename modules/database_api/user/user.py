@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import List
 from dataclasses import dataclass
-
+from datetime import datetime
 from modules.database_api.database.database import DB
-from modules.database_api.group.group import Group, DbGroup
-from modules.database_api.user.user_settings import UserSettings, UserSettingsUpdater
+from modules.database_api.group.group import Group
+from modules.database_api.user.user_settings import UserSettings
 from modules.database_api.event.event import Event, DbEvent, EventFetcher
+from modules.database_api.timetable.timetable import Timetable
 from modules.database_api.user.user_notification import UserNotification
 
 
@@ -42,21 +43,20 @@ class UserFetcher:
         return UserFetcher.constructor(DB.fetch_many(DB.users_table_name))
 
     @staticmethod
-    def fetch_groups(user: DbUser) -> List[Group]:
-        user_groups_ids = [info["group_id"] for info in DB.fetch_many(DB.users_groups_table_name, user_id=user.id)]
-
-        if user_groups_ids:
-            return [Group(id=group_id) for group_id in user_groups_ids]
-
-        return []
-
-    @staticmethod
     def fetch_by_telegram_id(telegram_id: int):
         return UserFetcher.constructor(DB.fetch_one(DB.users_table_name, telegram_id=telegram_id))
 
     @staticmethod
     def fetch_by_id(id: int) -> DbUser:
         return UserFetcher.constructor(DB.fetch_one(DB.users_table_name, id=id))
+
+    @staticmethod
+    def fetch_by_group_id(group_id: int) -> List[DbUser]:
+        users_id = [info["user_id"] for info in DB.fetch_many(DB.users_groups_table_name, group_id=group_id)]
+        if users_id:
+            return [UserFetcher.fetch_by_id(id) for id in users_id]
+
+        return []
 
     @staticmethod
     def constructor(info) -> DbUser | List[DbUser] | None:
@@ -69,10 +69,6 @@ class UserFetcher:
         else:
             return DbUser(id=info["id"], telegram_id=info["telegram_id"])
 
-    @staticmethod
-    def fetch_date_events(user: DbUser, date: str) -> DbEvent | List[DbEvent] | None:
-        return EventFetcher.constructor(DB.fetch_many(DB.events_table_name, date=date, user_id=user.id))
-
 
 class UserDeleter:
     @staticmethod
@@ -80,33 +76,24 @@ class UserDeleter:
         DB.delete_one(DB.users_table_name, id=user.id)
         DB.delete_one(DB.users_groups_table_name, user_id=user.id)
         DB.delete_one(DB.users_notifications_table_name, user_id=user.id)
+        DB.delete_one(DB.timetable_table_name, user_id=user.id)
         DB.delete_one(DB.users_settings_table_name, user_id=user.id)
 
     @staticmethod
-    def delete_group(user: DbUser, group: DbGroup):
-        DB.delete_one(DB.users_groups_table_name, user_id=user.id, group_id=group.id)
-
-    @staticmethod
-    def delete_notifications(user: DbUser):
-        DB.delete_one(DB.users_notifications_table_name, user_id=user.id)
+    def delete_group(user_id: int, group_id: int):
+        DB.delete_one(DB.users_groups_table_name, user_id=user_id, group_id=group_id)
 
 
 class UserInserter:
     @staticmethod
     def insert(telegram_id: int):
         DB.insert_one(DB.users_table_name, telegram_id=telegram_id)
-
-        UserInserter.insert_settings(telegram_id=telegram_id)
-
-    @staticmethod
-    def insert_group(user: DbUser, group: DbGroup):
-        DB.insert_one(DB.users_groups_table_name, group_id=group.id, user_id=user.id)
-
-    @staticmethod
-    def insert_settings(telegram_id: int):
         user = UserFetcher.fetch_by_telegram_id(telegram_id=telegram_id)
+        UserSettings.insert(user_id=user.id)
 
-        UserSettings.insert(user=user)
+    @staticmethod
+    def insert_group(user_id, group_id):
+        DB.insert_one(DB.users_groups_table_name, group_id=group_id, user_id=user_id)
 
     @staticmethod
     def insert_notifications(user: DbUser, notifications: List[str] | str):
@@ -146,7 +133,7 @@ class User:
         if not self._user:
             raise UserNotFoundError
 
-        self._user_settings = UserSettings(user_id=self._user.id)
+        self._user_settings = UserSettings(user_id=self.id)
 
     @property
     def settings(self):
@@ -161,13 +148,7 @@ class User:
         UserNotification.delete_user_notifications(user_id=self.id)
 
         for notification in notifications:
-            UserNotification.insert(notification)
-
-    def extract_notifications(self) -> List[UserNotification]:
-        notifications = UserNotification.user_notifications(user_id=self.id)
-        UserDeleter.delete_notifications(self._user)
-
-        return notifications
+            UserNotification.insert(self.id, notification)
 
     @staticmethod
     def all():
@@ -188,7 +169,15 @@ class User:
 
     @property
     def groups(self) -> List[Group]:
-        return UserFetcher.fetch_groups(self._user)
+        return Group.user_groups(user_id=self.id)
+
+    @staticmethod
+    def by_group(group_id: int):
+        users = UserFetcher.fetch_by_group_id(group_id=group_id)
+        if users:
+            return [User(db_user=user_info) for user_info in users]
+
+        return []
 
     @staticmethod
     def insert(telegram_id: int) -> User:
@@ -199,20 +188,42 @@ class User:
 
         except UserNotFoundError:
             UserInserter.insert(telegram_id=telegram_id)
-            user = User(telegram_id=telegram_id)
-            UserInserter.insert_notifications(user._user)
 
-            return user
+            return User(telegram_id=telegram_id)
+
+    @property
+    def timetable(self) -> List[Timetable]:
+        return Timetable.user_timetable(user_id=self.id)
+
+    def get_date_timetable(self, date: str) -> Timetable:
+        return Timetable(user_id=self.id, date=date)
+
+    def insert_timetable(self, date: str, image: bytes):
+        return Timetable.insert(user_id=self.id, date=date, image=image)
 
     def delete(self):
         UserDeleter.delete(self._user)
         self._user_settings.delete()
 
     def insert_group(self, group: Group):
-        UserInserter.insert_group(user=self._user, group=group._group)
+        UserInserter.insert_group(user_id=self.id, group_id=group.id)
 
     def delete_group(self, group: Group):
-        UserDeleter.delete_group(self._user, group._group)
+        UserDeleter.delete_group(user_id=self.id, group_id=group.id)
+
+    def date_events(self, date: str) -> List[Event]:
+        user_groups = self.groups
+        events = []
+        for group in user_groups:
+            events.extend(Event.by_group_and_date(group, date))
+
+        events.sort(
+            key=lambda event: (datetime.strptime(event.start, "%H:%M"), datetime.strptime(event.end, "%H:%M")))
+
+        if events:
+            return events
+
+        return []
 
     def __str__(self):
         return f"id: {self.id}, telegram_id: {self.telegram_id}"

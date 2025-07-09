@@ -1,10 +1,7 @@
 from typing import List
 from dataclasses import dataclass
-
-from seobject import kwargs
-
 from modules.database_api.database.database import DB
-
+from datetime import datetime
 from modules.database_api.group.group import Group
 
 
@@ -49,7 +46,13 @@ class DbEvent(CnEvent):
 class EventDeleter:
     @staticmethod
     def delete(event: DbEvent):
+        from modules.database_api.user.user import User
         DB.delete_one(DB.events_table_name, id=event.id)
+
+        group = event.group_id
+        users = User.by_group(group)
+        for user in users:
+            DB.delete_one(DB.timetable_table_name, user_id=user.id, date=event.date)
 
 
 class EventUpdater:
@@ -84,12 +87,20 @@ class EventUpdater:
 
 class EventFetcher:
     @staticmethod
-    def fetch_event(**kwargs):
+    def fetch_by_id(id: int):
+        return EventFetcher.constructor(DB.fetch_one(DB.events_table_name, id=id))
+
+    @staticmethod
+    def fetch(**kwargs):
         return EventFetcher.constructor(DB.fetch_one(DB.events_table_name, **kwargs))
 
     @staticmethod
     def fetch_all() -> List[DbEvent]:
         return EventFetcher.constructor(DB.fetch_many(DB.events_table_name))
+
+    @staticmethod
+    def fetch_by_group_id_and_date(group_id: int, date: str):
+        return EventFetcher.constructor(DB.fetch_many(DB.events_table_name, group_id=group_id, date=date))
 
     @staticmethod
     def constructor(info):
@@ -118,37 +129,47 @@ class EventFetcher:
 
 class EventInserter:
     @staticmethod
-    def insert(event: DbEvent):
+    def insert(name: str, group_id: int, date: str, start: str, end: str, owner: str, place: str):
         DB.insert_one(DB.events_table_name,
-                      name=event.name,
-                      group_id=event.group_id,
-                      date=event.date,
-                      start=event.start,
-                      end=event.end,
-                      owner=event.owner,
-                      place=event.place)
+                      name=name,
+                      group_id=group_id,
+                      date=date,
+                      start=start,
+                      end=end,
+                      owner=owner,
+                      place=place)
 
 
 class Event:
     _event: DbEvent
 
     def __init__(self, *args, **kwargs):
-        kwargs_keys = set(kwargs.keys())
 
-        fields = ["id", "name", "group_id", "date", "start", "end", "owner", "place"]
+        fields = ["id", "name", "group_id", "date", "start", "end", "owner", "place", "db_event"]
 
         for field in kwargs.keys():
             if field not in fields:
                 raise InvalidEventArgumentsError
 
-        if kwargs_keys == {"db_event"}:
+        if "db_event" in kwargs.keys():
             self._event = kwargs["db_event"]
 
+        elif "id" in kwargs.keys():
+            self._event = EventFetcher.fetch_by_id(id=kwargs["id"])
+
         else:
-            self._event = EventFetcher.fetch_event(**kwargs)
+            self._event = EventFetcher.fetch(**kwargs)
 
         if not self._event:
             raise EventNotFoundError
+
+    @staticmethod
+    def all():
+        events = EventFetcher.fetch_all()
+        if events:
+            return [Event(db_event=event_info) for event_info in events]
+
+        return []
 
     @property
     def name(self) -> str:
@@ -169,12 +190,18 @@ class Event:
 
     @property
     def group(self):
-        return Group(self._event.group_id)
+        return Group(id=self._event.group_id)
+
+    @group.setter
+    def group(self, group: Group):
+        EventUpdater.update_group_id(self._event, group.id)
+        self._event.group = group
+        self._event._group_id = group.id
 
     @group_id.setter
-    def group_id(self, group: Group):
-        EventUpdater.update_group_id(self._event, group.id)
-        self._event.group_id = group.id
+    def group_id(self, group_id: int):
+        EventUpdater.update_group_id(self._event, group_id)
+        self._event.group_id = group_id
 
     @property
     def date(self) -> str:
@@ -225,10 +252,23 @@ class Event:
         EventDeleter.delete(self._event)
 
     @staticmethod
-    def insert(event: DbEvent):
+    def by_group_and_date(group: Group, date: str):
+        events = EventFetcher.fetch_by_group_id_and_date(group_id=group.id, date=date)
+        if events:
+            return sorted([Event(db_event=event_info) for event_info in events],
+                          key=lambda event: (datetime.strptime(event.start, "%H:%M"),
+                                             datetime.strptime(event.end, "%H:%M")))
+
+        return []
+
+    @staticmethod
+    def insert(name: str, group_id: int, date: str, start: str, end: str, owner: str, place: str):
         try:
-            Event(db_event=event)
+            Event(name=name, group_id=group_id, date=date, start=start, end=end, owner=owner, place=place)
             raise EventAlreadyExistsError
 
         except EventNotFoundError:
-            EventInserter.insert(event)
+            EventInserter.insert(name=name, group_id=group_id, date=date, start=start, end=end, owner=owner,
+                                 place=place)
+
+            return Event(name=name, group_id=group_id, date=date, start=start, end=end, owner=owner, place=place)
