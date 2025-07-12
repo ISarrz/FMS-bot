@@ -1,4 +1,4 @@
-from modules.database_api.interaction.insert import insert_logs
+
 from datetime import datetime
 
 

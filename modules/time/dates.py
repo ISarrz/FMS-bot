@@ -19,6 +19,8 @@ WEEKDAY_PADDING = 2
 
 def get_current_week():
     now = dt.datetime.now(timezone)
+    now = dt.datetime.strptime("15.05.2025", "%d.%m.%Y")
+
     cur_monday = now - dt.timedelta(days=now.weekday())
 
     return [cur_monday + dt.timedelta(days=day) for day in range(7)]
@@ -26,6 +28,8 @@ def get_current_week():
 
 def get_next_week():
     now = dt.datetime.now(timezone)
+    now = dt.datetime.strptime("15.05.2025", "%d.%m.%Y")
+
     cur_monday = now - dt.timedelta(days=now.weekday())
     next_monday = cur_monday + dt.timedelta(days=7)
 
@@ -34,25 +38,31 @@ def get_next_week():
 
 def get_previous_week():
     now = dt.datetime.now(timezone)
+    now = dt.datetime.strptime("15.05.2025", "%d.%m.%Y")
+
     cur_monday = now - dt.timedelta(days=now.weekday())
     previous_monday = cur_monday - dt.timedelta(days=7)
 
     return [previous_monday + dt.timedelta(days=day) for day in range(7)]
+
 
 def get_current_week_string_days():
     current_dates = get_current_week()
     current_string_dates = [date.strftime('%d.%m') for date in current_dates]
 
     return current_string_dates
+
+
 def get_next_week_string_days():
-    current_dates =  get_next_week()
+    current_dates = get_next_week()
     current_string_dates = [date.strftime('%d.%m') for date in current_dates]
 
     return current_string_dates
 
+
 def get_current_string_dates():
     current_dates = get_current_week() + get_next_week()
-    current_string_dates = [date.strftime('%d.%m') for date in current_dates]
+    current_string_dates = [date.strftime('%d.%m.%Y') for date in current_dates]
 
     return current_string_dates
 
@@ -80,5 +90,6 @@ def get_next_week_string_weekdays():
 
 
 if __name__ == '__main__':
+    weekdays = get_current_week()
     for i in get_current_week_string_weekdays():
         print(i)

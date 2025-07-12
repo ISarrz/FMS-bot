@@ -5,10 +5,10 @@ import schedule
 import time
 import asyncio
 
-from modules.database_api.interaction.insert import insert_logs
-from modules.database_updater import downloader
-from modules.database_updater import parser
-from modules.database_updater import cleaner
+from modules.database.interaction.insert import insert_logs
+from modules.data_cleaner import web_parser
+from modules.data_cleaner import parser
+from modules.data_cleaner import cleaner
 from modules.images_updater import updater
 
 

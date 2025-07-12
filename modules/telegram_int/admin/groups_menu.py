@@ -7,7 +7,7 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
-from modules.database_api import *
+from modules.database import *
 from modules.logger import *
 from modules.telegram_int.admin.symbols import *
 from modules.logger.logger import async_logger, logger

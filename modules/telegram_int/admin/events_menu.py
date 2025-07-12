@@ -23,7 +23,7 @@ from telegram.ext import (
     filters
 )
 from modules.files_api import get_config_field
-from modules.database_api import *
+from modules.database import *
 from modules.time import *
 from modules.telegram_int.admin.symbols import *
 from modules.logger import *
