@@ -1,79 +1,73 @@
 from PIL import ImageFont
 from modules.config.paths import fonts_path
+from modules.data_updater.painter.pixels import Pixels
+from modules.data_updater.painter.base_container import BaseContainer
 import os
+import dataclasses
 
 
-def get_font(name):
-    name = "_".join(name.split())
+def get_font(name, size=12):
+    name = "_".join(name.split()) + ".ttf"
     path = os.path.join(fonts_path, name)
-    return ImageFont.truetype(path)
+    return ImageFont.truetype(path, size=size)
 
 
 BASE_FONT = get_font("Roboto Medium Regular")
 
 
-class Text:
+class Text(BaseContainer):
+    _value: str
     _font: ImageFont
-    _left_top: tuple[int, int]
-    _right_bottom: tuple[int, int]
+    _fill: str
 
-    def __init__(self, font=BASE_FONT, left_top=(0, 0), right_bottom=(0, 0)):
+    def __init__(self, value="", fill="black", font=BASE_FONT, left_top=(0, 0)):
         self._font = font
-        self._left_top = left_top
-        self._right_bottom = right_bottom
+        self._value = value
+        self._fill = fill
+        self.pixels = Pixels()
+
+        self._update_pixels()
+        self.pixels.left_top = left_top
+
+    def _update_pixels(self):
+        bbox = self._font.getbbox(self._value)
+        width = bbox[2]
+        height = bbox[3]
+
+        self.pixels.width = width
+        self.pixels.height = height
 
     @property
-    def width(self):
-        return self.right_x - self.left_x
+    def size(self):
+        return self._font.size
 
-    @property
-    def height(self):
-        return self.bottom_y - self.top_y
-
-    @property
-    def left_x(self):
-        return self._left_top[0]
-
-    @property
-    def top_y(self):
-        return self._left_top[1]
-
-    @property
-    def right_x(self):
-        return self._right_bottom[0]
-
-    @property
-    def bottom_y(self):
-        return self._right_bottom[1]
-
-    @property
-    def left_top(self):
-        return self._left_top
-
-    @property
-    def right_bottom(self):
-        return self._right_bottom
+    @size.setter
+    def size(self, value):
+        self._font = ImageFont.truetype(self._font.path, size=value)
+        self._update_pixels()
 
     def draw(self, canvas):
-        pass
+        canvas.text(self.pixels.left_top, text=self._value, fill=self._fill, font=self._font)
 
 
-from PIL import Image, ImageDraw, ImageFont
+if __name__ == "__main__":
+    pass
+    from PIL import Image, ImageDraw, ImageFont
 
-# Создаем пустое белое изображение
-image = Image.new("RGB", (300, 100), color="white")
+    # Создаем пустое белое изображение
+    image = Image.new("RGB", (300, 100), color="white")
 
-# Объект для рисования
-draw = ImageDraw.Draw(image)
+    # Объект для рисования
+    canvas = ImageDraw.Draw(image)
 
-# Шрифт (по умолчанию или свой)
-# font = ImageFont.load_default()  # или ImageFont.truetype("arial.ttf", size=20)
-path = "/home/zero/PycharmProjects/FMS-bot/modules/data_updater/painter/fonts/Roboto.ttf"
-font = ImageFont.truetype(path, size=20)
+    left_top = (0, 0)
+    fill_color = "black"
 
-# Текст, координаты, цвет
-draw.text((10, 30), "привет", fill="black", font=font)
+    text = Text(value="привет", fill=fill_color, left_top=left_top)
+    text.size = 12
+    print(text.pixels.center)
+    print(text.size)
+    text.draw(canvas)
+    image.save("text_image.png")
+    image.show()
 
-# Сохраняем
-image.save("text_image.png")
-image.show()

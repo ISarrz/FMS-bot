@@ -16,16 +16,18 @@ database_dump_path = os.path.join(database_dumps_path, "database_dump.db")
 config_path = os.path.join(data_path, "config.json")
 
 modules_path = os.path.join(project_path, "modules")
-database_updater_path = os.path.join(modules_path, "database_updater")
 scripts_path = os.path.join(project_path, "scripts")
 
 downloaded_files_path = os.path.join(data_path, "downloaded_files")
 parsed_files_path = os.path.join(data_path, "parsed_files")
 
+data_updater_path = os.path.join(modules_path, "data_updater")
+painter_path = os.path.join(data_updater_path, "painter")
+fonts_path = os.path.join(painter_path, "fonts")
+
 images_updater_path = os.path.join(modules_path, "images_updater")
 render_path = os.path.join(images_updater_path, "render")
 templates_path = os.path.join(render_path, "templates")
-fonts_path = os.path.join(images_updater_path, "fonts")
 
 telegram_path = os.path.join(modules_path, "telegram_int")
 telegram_messages_path = os.path.join(telegram_path, "messages")
