@@ -1,12 +1,33 @@
+from __future__ import annotations
 import dataclasses
 
+from sympy import false
 
-@dataclasses.dataclass
+from modules.data_updater.painter.simple_container import SimpleContainer
+
+
 class Pixels:
+    # container: SimpleContainer
     _left_top: tuple[int, int] = (0, 0)
     _right_bottom: tuple[int, int] = (0, 0)
     _padding: int = 0
     _margin: int = 0
+    _container: SimpleContainer = SimpleContainer()
+
+    def __init__(self, container=None, left_top=(0, 0), right_bottom=(0, 0), padding=0, margin=0):
+        self.left_top = left_top
+        self.right_bottom = right_bottom
+        self.padding = padding
+        self.margin = margin
+        self.container = container
+
+    @property
+    def container(self) -> SimpleContainer:
+        return self._container
+
+    @container.setter
+    def container(self, container: SimpleContainer):
+        self._container = container
 
     @property
     def padding(self):
@@ -15,6 +36,8 @@ class Pixels:
     @padding.setter
     def padding(self, value):
         self._padding = value
+        if self.container:
+            self._container._changed("padding")
 
     @property
     def margin(self):
@@ -23,6 +46,8 @@ class Pixels:
     @margin.setter
     def margin(self, value):
         self._margin = value
+        if self.container:
+            self._container._changed("margin")
 
     @property
     def left_top(self):
@@ -50,11 +75,11 @@ class Pixels:
 
     @property
     def width(self):
-        return self.right_x - self.left_x
+        return self.right_x - self.left_x + 1
 
     @property
     def height(self):
-        return self.bottom_y - self.top_y
+        return self.bottom_y - self.top_y + 1
 
     @property
     def center(self):
@@ -65,23 +90,34 @@ class Pixels:
         width = self.width
         height = self.height
         self._left_top = value
-        self._right_bottom = self.left_x + width, self.top_y + height
+        self._right_bottom = self.left_x + width - 1, self.top_y + height - 1
 
+        if self.container:
+            self._container._changed("left_top")
 
     @right_bottom.setter
     def right_bottom(self, value: tuple[int, int]):
         width = self.width
         height = self.height
         self._right_bottom = value
-        self._left_top = self.right_x - width, self.bottom_y - height
+        self._left_top = self.right_x - width + 1, self.bottom_y - height + 1
+
+        if self.container:
+            self._container._changed("right_bottom")
 
     @width.setter
     def width(self, value):
-        self._right_bottom = self.left_top[0] + value, self.right_bottom[1]
+        self._right_bottom = self.left_top[0] + value -1, self.right_bottom[1]
+
+        if self.container:
+            self._container._changed("width")
 
     @height.setter
     def height(self, value):
-        self._right_bottom = self.right_bottom[0], self.left_top[1] + value
+        self._right_bottom = self.right_bottom[0], self.left_top[1] + value - 1
+
+        if self.container:
+            self._container._changed("height")
 
     @center.setter
     def center(self, value):
@@ -94,3 +130,12 @@ class Pixels:
 
         self.left_top = value[0] - left_width, value[1] - top_height
         self.right_bottom = value[0] + right_width, value[1] + bottom_height
+
+        if self.container:
+            self._container._changed("center")
+
+
+if __name__ == "__main__":
+    container = SimpleContainer()
+    pixels = Pixels()
+    pixels.container = container

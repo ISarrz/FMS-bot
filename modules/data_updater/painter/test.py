@@ -1,38 +1,62 @@
-from PIL import Image, ImageDraw, ImageFont
-from PIL import ImageFont
-from modules.config.paths import fonts_path
-from modules.data_updater.painter.pixels import Pixels
-from modules.data_updater.painter.base_container import BaseContainer
-import os
-import dataclasses
-# создаём изображение
-img = Image.new("RGB", (400, 200), "white")
-draw = ImageDraw.Draw(img)
+from typing import List
+from PIL import ImageFont, ImageDraw, Image
+from modules.data_updater.painter.table import Table
+from modules.data_updater.painter.column import Column
+from modules.data_updater.painter.text import Text
+
+def table():
+    image = Image.new('RGB', (500, 500), "white")
+    canvas = ImageDraw.Draw(image)
+    width = 2
+    height = 2
+    content = [[None for i in range(width)] for j in range(height)]
+    for i in range(height):
+        for j in range(width):
+            content[i][j] = Text(value=str(i) + " " + str(j), fill="black")
+            content[i][j].size = 30
+
+    column = Column(left_top=(10, 10), outline_size=0)
+    text1 = Text(value="Hello, world!")
+    text1._fill = "#FFFFFF"
+    text2 = Text(value="Hello!")
+    text1.size = 50
+    text2.size = 40
+    text2._fill = "#FFFFFF"
+    column.add(text1)
+    column.add(text2)
+
+    content[0][0] = column
+
+    # column.draw(canvas)
+
+    left_top = (10, 10)
+    table = Table(left_top=left_top, content=content)
+    table.pixels.padding = 10
+    table.unite_cells((0,0), (0, 1))
+    table.squeeze()
+
+    table[0][0].fill = "#424549"
 
 
-def get_font(name, size=12):
-    name = "_".join(name.split()) + ".ttf"
-    path = os.path.join(fonts_path, name)
-    return ImageFont.truetype(path, size=size)
+    # table._content[0][0].draw(canvas)
+    # table._content[0][0]._content.draw(canvas)
+    table.draw(canvas)
+    # table
+
+    image.save("text_image.png")
+    image.show()
+
+def rect():
+    image = Image.new('RGB', (500, 500), "yellow")
+    canvas = ImageDraw.Draw(image)
 
 
-font = get_font("Roboto Medium Regular", 30)
+    canvas.rounded_rectangle((10, 10, 40, 40),
+                             radius=0,
+                             fill=None,
+                             outline="black",
+                             width=1)
+    image.save("text_image.png")
+    image.show()
 
-
-# текст и координаты привязки
-text = "Hello!i"
-x, y = 50, 100  # точка привязки (baseline)
-draw.text((x, y), text, font=font, fill="black")
-
-# вычисляем bbox
-bbox = draw.textbbox((x, y), text, font=font)  # (left, top, right, bottom)
-
-# рисуем bbox красным
-draw.rectangle(bbox, outline="red", width=2)
-
-# рисуем точку привязки зелёным крестиком
-cross_size = 5
-draw.line((x-cross_size, y, x+cross_size, y), fill="green", width=2)
-draw.line((x, y-cross_size, x, y+cross_size), fill="green", width=2)
-
-img.show()
+table()

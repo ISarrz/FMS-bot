@@ -12,7 +12,7 @@ def get_font(name, size=12):
     return ImageFont.truetype(path, size=size)
 
 
-BASE_FONT = get_font("Roboto Medium Regular")
+BASE_FONT = get_font("Roboto Medium Regular", size=20)
 
 
 class Text(BaseContainer):
@@ -24,7 +24,7 @@ class Text(BaseContainer):
         self._font = font
         self._value = value
         self._fill = fill
-        self.pixels = Pixels()
+        self.pixels = Pixels(container=self)
 
         self._update_pixels()
         self.pixels.left_top = left_top
@@ -36,6 +36,14 @@ class Text(BaseContainer):
 
         self.pixels.width = width
         self.pixels.height = height
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
 
     @property
     def size(self):
@@ -70,4 +78,3 @@ if __name__ == "__main__":
     text.draw(canvas)
     image.save("text_image.png")
     image.show()
-

@@ -1,328 +1,427 @@
-from modules.data_updater.painter.style import *
-from modules.data_updater.painter.constants import *
-from modules.data_updater.painter.cell import *
+from typing import List, Self
+from PIL import ImageFont, ImageDraw, Image
+# from modules.data_updater.painter.style import *
+# from modules.data_updater.painter.constants import *
+# from modules.data_updater.painter.cell import *
+from modules.data_updater.painter.base_container import BaseContainer
+from modules.data_updater.painter.pixels import Pixels
+from modules.data_updater.painter.container import Container
+from modules.data_updater.painter.text import Text
+from modules.data_updater.painter.united_cell import UnitedCell
 
-im = Image.new('RGB', (500, 500), colors['white'])
-draw = ImageDraw.Draw(im)
+
+class Cell(Container):
+    _coordinates: tuple[int, int] = (0, 0)
+
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, value):
+        self._coordinates = value
+
+    @property
+    def row(self):
+        return self.coordinates[0]
+
+    @row.setter
+    def row(self, value):
+        self.coordinates = (value, self.column)
+
+    @property
+    def column(self):
+        return self.coordinates[1]
+
+    @column.setter
+    def column(self, value):
+        self.coordinates = (self.row, value)
 
 
-class Table:
-    """Allows you to create graphical tables with Pillow"""
+class UnitedCell(Cell):
+    parent: None | Self = None
+    width: int
+    height: int
+    left_top: tuple[int, int]
+    right_bottom: tuple[int, int]
 
-    def __init__(self, matrix: list[list[str]], cell_style=CellStyle(ImageFont.load_default(20))):
-        """
-        You can initialize table with values matrix or create an empty table of specified size
+    # def __init__(self, cell: Cell) -> None:
+    #     super().__init__(fill=cell._fill, radius=cell._radius)
+    #     self.pixels = cell.pixels
+    #     self._update_pixels()
 
-        Args:
-            matrix (list[list[str]]): Matrix with values.
-            cell_style (CellStyle): Default cell style.
-        """
-
-        self.columns_width = []
-        self.rows_height = []
-        self.same_columns = []
-        self.cell_style = cell_style
-
-        self.width = len(matrix[0])
-        self.height = len(matrix)
-        self.matrix = [[Cell((row, col), matrix[row][col], cell_style=self.cell_style)
-                        for col in range(self.width)] for row in range(self.height)]
-
-        # Группы колонок и рядов одного размера (to do)
-        # self.column_groups = None
-        # self.row_groups = None
-
-        self.same_columns = [False for _ in range(self.width)]
-        # formatting table
-        self._calculate_table_size()
-
-    def _calculate_table_size(self):
-        columns_width = [0 for _ in range(self.width)]
-        rows_height = [0 for _ in range(self.height)]
-
-        # usual cell size setting
-        for row in range(self.height):
-            for col in range(self.width):
-                cell = self.get_cell((row, col))
-                if not cell.unite:
-                    columns_width[col] = max(columns_width[col], cell.pixel_width)
-                    rows_height[row] = max(rows_height[row], cell.pixel_height)
-
-        # united cell size setting
-        for row in range(self.height):
-            for column in range(self.width):
-                cell = self.get_cell((row, column))
-                if cell.unite and cell.parent is None:
-                    width = cell.pixel_width
-                    height = cell.pixel_height
-                    width -= sum(columns_width[cell.left_top[1]:cell.right_bottom[1] + 1])
-                    height -= sum(rows_height[cell.left_top[0]:cell.right_bottom[0] + 1])
-                    width = max(0, width)
-                    height = max(0, height)
-                    width //= cell.width
-                    height //= cell.height
-                    for i in range(cell.left_top[1], cell.right_bottom[1] + 1):
-                        columns_width[i] += width
-                    for i in range(cell.left_top[0], cell.right_bottom[0] + 1):
-                        rows_height[i] += height
-
-        # find max same group value
-        same_width = max([columns_width[column] if self.same_columns[column] else 0 for column in range(self.width)])
-
-        # setting size for usual cells
-        for row in range(self.height):
-            for column in range(self.width):
-                width, height = columns_width[column], rows_height[row]
-                cell = self.get_cell((row, column))
-                if not cell.unite:
-                    if self.same_columns[column]:
-                        cell.set_cell_size(same_width, height)
-                        columns_width[column] = same_width
-                    else:
-                        cell.set_cell_size(width, height)
-
-        # setting size for united cells
-        for row in range(self.height):
-            for col in range(self.width):
-                cell = self.get_cell((row, col))
-                if cell.unite and cell.parent is None:
-                    width = sum(columns_width[cell.left_top[1]:cell.right_bottom[1] + 1])
-                    height = sum(rows_height[cell.left_top[0]:cell.right_bottom[0] + 1])
-                    cell.set_cell_size(width, height)
-
-        # Баг в пересчете координат, надо подумать
-
-        self.columns_width = columns_width
-        self.rows_height = rows_height
-        self._calculate_coordinates()
-
-    def _calculate_coordinates(self):
-        for row in range(self.height):
-            for col in range(self.width):
-                if self.get_cell((row, col)).parent is not None:
-                    continue
-                x = self.get_cell((row, col - 1)).get_xy2()[0] if col != 0 else 0
-                y = self.get_cell((row - 1, col)).get_xy2()[1] if row != 0 else 0
-                self.get_cell((row, col)).set_xy1((x, y))
-
-    def autoformat(self):
-        """Sets minimal size of all cells and formatting table."""
-        for row in range(self.height):
-            for column in range(self.width):
-                self.get_cell((row, column)).set_minimal_size()
-        self._calculate_table_size()
-        self._calculate_coordinates()
-
-    def set_same_columns(self, group: list[int]):
-        for i in group:
-            self.same_columns[i] = True
-
-    def set_cell_style(self, coordinates: (int, int), style: CellStyle):
-        self.get_cell(coordinates).set_cell_style(style)
-
-    def set_cell_lines_style(self, coord: (int, int), styles: list[TextStyle]):
-        cell = self.get_cell(coord)
-        for i in range(len(styles)):
-            style = styles[i]
-            cell.lines[i][1] = style
-
-    def set_area_lines_style(self, coord1: (int, int), coord2: (int, int), styles: list[TextStyle]):
-        for i in range(coord1[0], coord2[0] + 1):
-            for j in range(coord1[1], coord2[1] + 1):
-                cell = self.get_cell((i, j))
-                for g in range(min(len(styles), len(cell.lines))):
-                    style = styles[g]
-                    cell.lines[g][1] = style
-
-    def set_area_style(self, coords1: (int, int), coords2: (int, int), style: CellStyle):
-        for row in range(coords1[0], coords2[0] + 1):
-            for col in range(coords1[1], coords2[1] + 1):
-                self.get_cell((row, col)).set_cell_style(style)
-
-    def get_cell(self, coordinates: (int, int)) -> Cell:
-        self._check_coordinates(coordinates)
-        return self.matrix[coordinates[0]][coordinates[1]]
-
-    def check_coordinates(self, coordinates: (int, int)) -> bool:
-        row, column = coordinates
-        if row < 0 or row >= self.height or column < 0 or column >= self.width:
-            return False
-        return True
-
-    def _check_coordinates(self, coordinates: (int, int)):
-        if not self.check_coordinates(coordinates):
-            raise IndexError("Invalid coordinates")
-
-    def check_rectangle(self, left_top, right_bottom) -> bool:
-        if not self.check_coordinates(left_top) or not self.check_coordinates(right_bottom):
-            return False
-        if right_bottom[0] < left_top[0] or left_top[1] > right_bottom[1]:
-            return False
-        return True
-
-    def _check_rectangle(self, left_top, right_bottom):
-        if not self.check_rectangle(left_top, right_bottom):
-            raise IndexError("Invalid coordinates")
-
-    def draw(self, screen=None, margin=0):
-        self._calculate_table_size()
-        table_width = sum(self.columns_width) + self.cell_style.line_width
-        table_height = sum(self.rows_height) + self.cell_style.line_width
-        canvas_width = table_width + margin * 2
-        canvas_height = table_height + margin * 2
-
-        image1 = Image.new('RGB', (canvas_width, canvas_height), colors['discord4'])
-
-        image2 = Image.new('RGB', (table_width, table_height), colors['discord4'])
-        table = ImageDraw.Draw(image2)
-
-        for row in range(self.height):
-            for column in range(self.width):
-                cell = self.get_cell((row, column))
-                if cell.parent is None:
-                    cell.draw(table)
-
-        image1.paste(image2, (margin, margin))
-        return image1
+    @property
+    def left_column(self):
+        return self.left_top[0]
 
     @staticmethod
-    def _unite_cells(cell1: Cell, cell2: Cell):
-        # Unite single cells
+    def convert_cell_to_united_cell(cell: Cell) -> UnitedCell:
+        united_cell = UnitedCell()
+        united_cell.pixels = cell.pixels
+        united_cell.content = cell.content
+        united_cell.coordinates = cell.coordinates
+        united_cell.left_top = cell.coordinates
+        united_cell.right_bottom = cell.coordinates
+        united_cell.outline_size = cell.outline_size
+        united_cell.outline_color = cell.outline_color
+        united_cell.fill = cell.fill
+        united_cell._radius = cell._radius
+        united_cell.vertical_alignment = cell.vertical_alignment
+        united_cell.horizontal_alignment = cell.horizontal_alignment
+        united_cell.left_outline_color = cell.left_outline_color
+        united_cell.right_outline_color = cell.right_outline_color
+        united_cell.top_outline_color = cell.top_outline_color
+        united_cell.bottom_outline_color = cell.bottom_outline_color
 
-        if cell1.coords == cell2.coords:
-            return
+        return united_cell
 
-        # calculating Coordinates of united box
-        left_top = (min(cell1.coords[0], cell2.coords[0]), min(cell1.coords[1], cell2.coords[1]))
-        right_bottom = (max(cell1.coords[0], cell2.coords[0]), max(cell1.coords[1], cell2.coords[1]))
+    @property
+    def right_column(self):
+        return self.right_bottom[0]
 
-        # cell1 is main
-        if left_top != cell1.coords:
+    @property
+    def top_row(self):
+        return self.left_top[1]
+
+    @property
+    def bottom_row(self):
+        return self.right_bottom[1]
+
+    def set_parent(self, parent: Self, child_cell):
+        self.pixels.width = 0
+        self.pixels.height = 0
+        self.parent = parent
+        self.width = 1
+        self.height = 1
+        self.coordinates = child_cell.coordinates
+        self.left_top = self.coordinates
+
+    def set_main(self, main_cell: Cell, child_cell: Cell):
+        self.pixels.left_top = main_cell.pixels.left_top
+        self.pixels.width = child_cell.pixels.right_x - main_cell.pixels.left_x + 1
+        self.pixels.height = child_cell.pixels.bottom_y - main_cell.pixels.top_y + 1
+
+        if not isinstance(main_cell, UnitedCell):
+            main_cell = UnitedCell.convert_cell_to_united_cell(main_cell)
+
+        if not isinstance(child_cell, UnitedCell):
+            child_cell = UnitedCell.convert_cell_to_united_cell(child_cell)
+
+        self.width = child_cell.right_column - main_cell.left_column + 1
+        self.height = child_cell.bottom_row - main_cell.top_row + 1
+
+        self.coordinates = main_cell.coordinates
+        self.left_top = main_cell.coordinates
+        self.right_bottom = (self.top_row + self.height - 1, self.left_column + self.width - 1)
+        self.horizontal_alignment = main_cell.horizontal_alignment
+        self.vertical_alignment = main_cell.vertical_alignment
+        self._outline_size = main_cell.outline_size
+        self.content = main_cell.content
+        self.pixels.padding = main_cell.pixels.padding
+
+
+class Table(BaseContainer):
+    _content: List
+    _columns_width: List[int]
+    _rows_height: List[int]
+    _same_column_width: List[int]
+    _same_row_height: List[int]
+    _width: int = 0
+    _height: int = 0
+    pixels = Pixels
+    _vertical_alignment: str = "center"
+    _horizontal_alignment: str = "center"
+    _outline_size: int | None = None
+    _outline_color: str | None = None
+
+    def __init__(self, left_top=(0, 0), content=None):
+        self.pixels = Pixels(container=self)
+        self._set_content(content)
+        self._same_column_width = [column for column in range(self._width)]
+        self._same_row_height = [row for row in range(self._height)]
+        self.pixels.left_top = left_top
+
+        self._update_pixels()
+
+    def _changed(self, field):
+        pass
+        if field == "padding":
+            self._update_content()
+
+    @property
+    def outline_size(self):
+        return self._outline_size
+
+    @outline_size.setter
+    def outline_size(self, value):
+        self._outline_size = value
+        self._update_content()
+
+    @property
+    def outline_color(self):
+        return self._outline_color
+
+    @outline_color.setter
+    def outline_color(self, value):
+        self._outline_color = value
+        self._update_content()
+
+    def _update_content(self):
+        for row in range(self._height):
+            for column in range(self._width):
+                cell = self._content[row][column]
+
+                if not isinstance(cell, UnitedCell) or isinstance(cell, UnitedCell) and cell.parent is None:
+                    if self.pixels.padding:
+                        cell.pixels.padding = self.pixels.padding
+
+                    if self.outline_size:
+                        cell.outline_size = self.outline_size
+
+                    if self.outline_color:
+                        cell.outline_color = self.outline_color
+
+                    cell.vertical_alignment = self._vertical_alignment
+                    cell.horizontal_alignment = self._horizontal_alignment
+                    cell.coordinates = row, column
+                else:
+                    cell.pixels.padding = 0
+                    cell.pixels.outline_size = 0
+                    cell.pixels.width = 0
+                    cell.pixels.height = 0
+
+    def _set_content(self, content):
+        self._width = len(content[0])
+        self._height = len(content)
+        self._content = [[Cell() for _ in range(self._width)] for _ in range(self._height)]
+        for row in range(self._height):
+            for column in range(self._width):
+                self._content[row][column].content = content[row][column]
+
+    def __getitem__(self, index):
+        return self._content[index]
+
+    def _update_pixels(self):
+        self._update_columns_width()
+        self._update_rows_height()
+        self._update_cells_size()
+        self._update_united_cells_size()
+        self.pixels.width = sum(self._columns_width)
+        self.pixels.height = sum(self._rows_height)
+        self._update_content()
+
+        current_pos = self.pixels.left_top
+        for row in range(self._height):
+            for column in range(self._width):
+                cell = self._content[row][column]
+                if isinstance(cell, UnitedCell):
+                    if cell.parent is None:
+                        cell.pixels.left_top = current_pos
+                    else:
+                        pass
+                else:
+                    cell.pixels.left_top = current_pos
+
+                current_pos = current_pos[0] + self._columns_width[column] - 1, current_pos[1]
+
+            current_pos = self.pixels.left_x, current_pos[1] + self._rows_height[row] - 1
+        pass
+
+    def _update_columns_width(self):
+        self._columns_width = [0 for i in range(self._width)]
+        same_column_width_groups = dict()
+        for group_ind in self._same_column_width:
+            same_column_width_groups[group_ind] = []
+
+        for group_ind, column_ind in enumerate(self._same_column_width):
+            same_column_width_groups[group_ind].append(column_ind)
+
+        for column in range(self._width):
+            column_width = 0
+            for row in range(self._height):
+                cell = self._content[row][column]
+                if isinstance(cell, UnitedCell):
+                    continue
+                else:
+                    self._columns_width[column] = max(self._columns_width[column], cell.pixels.width)
+
+        for group in same_column_width_groups.values():
+            width = max(self._columns_width[column_ind] for column_ind in group)
+            for column_ind in group:
+                self._columns_width[column_ind] = width
+
+        for column in range(self._width):
+            column_width = 0
+            for row in range(self._height):
+                cell = self._content[row][column]
+                if isinstance(cell, UnitedCell) and cell.parent is None:
+                    width = cell.pixels.width
+                    start = cell.coordinates[0]
+                    end = start + cell.width
+                    width -= sum(self._columns_width[start:end])
+                    width = (width + cell.width - 1) // cell.width
+                    for i in range(start, end):
+                        self._columns_width[i] += width
+
+    def _update_rows_height(self):
+        self._rows_height = [0 for i in range(self._height)]
+        same_row_height_groups = dict()
+        for group_ind in self._same_row_height:
+            same_row_height_groups[group_ind] = []
+
+        for group_ind, row_ind in enumerate(self._same_row_height):
+            same_row_height_groups[group_ind].append(row_ind)
+
+        for row in range(self._height):
+            row_height = 0
+            for column in range(self._width):
+                cell = self._content[row][column]
+                if isinstance(cell, UnitedCell):
+                    continue
+                self._rows_height[row] = max(self._rows_height[row], cell.pixels.height)
+
+        for group in same_row_height_groups.values():
+            height = max(self._rows_height[row_ind] for row_ind in group)
+            for row_ind in group:
+                self._rows_height[row_ind] = height
+
+        for row in range(self._height):
+            row_height = 0
+            for column in range(self._width):
+                cell = self._content[row][column]
+                if isinstance(cell, UnitedCell) and cell.parent is None:
+                    height = cell.pixels.height
+                    start = cell.coordinates[1]
+                    end = start + cell.height
+                    height -= sum(self._rows_height[start:end])
+                    height = (height + cell.height - 1) // cell.height
+                    for i in range(start, end):
+                        self._rows_height[i] += height
+
+    def _update_cells_size(self):
+        for row in range(self._height):
+            for column in range(self._width):
+                cell = self._content[row][column]
+                if isinstance(cell, UnitedCell):
+                    continue
+
+                self._content[row][column].pixels.width = self._columns_width[column]
+                self._content[row][column].pixels.height = self._rows_height[row]
+
+    def _update_united_cells_size(self):
+        for row in range(self._height):
+            for column in range(self._width):
+                cell = self._content[row][column]
+                if isinstance(cell, UnitedCell) and cell.parent is None:
+                    width_start = cell.coordinates[0]
+                    width_end = cell.width + width_start
+                    height_start = cell.coordinates[1]
+                    height_end = cell.height + height_start
+                    width = sum(self._columns_width[width_start:width_end]) - cell.width + 1
+                    height = sum(self._rows_height[height_start:height_end]) - cell.height + 1
+                    self._content[row][column].pixels.width = width
+                    self._content[row][column].pixels.height = height
+
+    def squeeze(self):
+        for row in range(self._height):
+            for column in range(self._width):
+                self._content[row][column].squeeze()
+
+        self._update_pixels()
+
+    def draw(self, canvas):
+        for row in range(self._height):
+            for column in range(self._width):
+                cell = self._content[row][column]
+                if isinstance(cell, UnitedCell):
+                    if not cell.parent:
+                        cell.draw(canvas)
+                else:
+                    cell.draw(canvas)
+
+    def _unite_cells(self, cell1: Cell, cell2: Cell):
+        # cell1 is main(left top)
+        if cell1.coordinates > cell2.coordinates:
             cell1, cell2 = cell2, cell1
 
-        pixel_width = cell2.xy2[0] - cell1.xy1[0]
-        pixel_height = cell2.xy2[1] - cell1.xy1[1]
-        width = right_bottom[1] - left_top[1] + 1
-        height = right_bottom[0] - left_top[0] + 1
+        width = cell2.column - cell1.column + 1
+        height = cell2.row - cell1.row + 1
 
-        # Checking the neighbourhood of cells
-        row_delta = abs(cell1.coords[0] - cell2.coords[0])
-        column_delta = abs(cell1.coords[1] - cell2.coords[1])
-
-        if row_delta > 1 or column_delta > 1 or row_delta == 1 and column_delta == 1:
+        if width + height > 3:
             raise ValueError('Cells are not neighbors')
 
-        cell1.set_main(right_bottom, (width, height), (pixel_width, pixel_height))
-        cell2.set_parent(cell1)
+        main_cell = UnitedCell()
+        main_cell.set_main(cell1, cell2)
 
-    def _unite_blocks(self, cell1: Cell, cell2: Cell):
+        child_cell = UnitedCell()
+        child_cell.set_parent(main_cell, cell2)
+
+        self._content[main_cell.row][main_cell.column] = main_cell
+        self._content[child_cell.row][child_cell.column] = child_cell
+
+    def _unite_blocks(self, cell1: UnitedCell, cell2: UnitedCell):
         # Unite blocks of united cells
         if cell1.parent is not None:
-            cell1 = self.get_cell(cell1.parent.coords)
+            cell1 = cell1.parent
+
         if cell2.parent is not None:
-            cell2 = self.get_cell(cell2.parent.coords)
+            cell2 = cell2.parent
 
-        if cell1.coords == cell2.coords:
-            return
-
-        # calculating borders
-        left_top = min(cell1.coords, cell2.coords)
-        right_bottom = max(cell1.right_bottom, cell2.right_bottom)
-
-        # Cell1 is main
-        if cell1.coords != left_top:
+        if cell1.coordinates > cell2.coordinates:
             cell1, cell2 = cell2, cell1
 
         # Exception check
-        if not (cell1.left_top[0] == cell2.left_top[0] and  # rows same
-                cell1.right_bottom[0] == cell2.right_bottom[0] and
-                abs(cell1.right_bottom[1] - cell2.left_top[1]) <= 1 or
-                cell1.left_top[1] == cell2.left_top[1] and  # columns same
-                cell1.right_bottom[1] == cell2.right_bottom[1] and
-                abs(cell1.right_bottom[0] - cell2.left_top[0]) <= 1):
-            raise ValueError('Block are not neighbors')
+        if not (cell1.top_row == cell2.top_row and  # rows same
+                cell1.bottom_row == cell2.bottom_row and
+                abs(cell1.right_column - cell2.left_column) <= 1 or
+                cell1.left_column == cell2.left_column and  # columns same
+                cell1.right_column == cell2.right_column and
+                abs(cell1.bottom_row - cell2.top_row) <= 1):
+            raise ValueError('Blocks are not neighbors')
 
-        # Setting values
-        width = right_bottom[1] - left_top[1] + 1
-        height = right_bottom[0] - left_top[0] + 1
-        pixel_width = cell2.xy2[0] - cell1.xy1[0]
-        pixel_height = cell1.xy2[1] - cell2.xy1[1]
-        cell1.set_main(right_bottom, (width, height), (pixel_width, pixel_height))
+        main_cell = UnitedCell()
+        main_cell.set_main(cell1, cell2)
+        self._content[main_cell.row][main_cell.column] = main_cell
 
-        for row in range(left_top[0], right_bottom[0] + 1):
-            for col in range(left_top[1], right_bottom[1] + 1):
-                if (row, col) == left_top:  # skip main
+        for row in range(cell1.top_row, cell2.bottom_row + 1):
+            for column in range(cell1.left_column, cell2.right_column + 1):
+                if (row, column) == main_cell.coordinates:  # skip main
                     continue
-                self.get_cell((row, col)).set_parent(cell1)
+
+                cell = self[row][column]
+                child_cell = UnitedCell()
+                child_cell.set_parent(main_cell, cell2)
+                self._content[row][column] = child_cell
 
     def _unite_cell_with_block(self, cell1: Cell, cell2: Cell):
         # Unite single cell with block united cells
+        if cell1.coordinates > cell2.coordinates:
+            cell1, cell2 = cell2, cell1
 
-        if cell1.coords == cell2.coords:
-            return
+        if not isinstance(cell1, UnitedCell):
+            cell1 = UnitedCell.convert_cell_to_united_cell(cell1)
 
-        # calculating borders
-        left_top = min(cell1.coords, cell2.parent.coords)
-        right_bottom = max(cell1.coords, cell2.parent.coords)
-        width = right_bottom[1] - left_top[1] + 1
-        height = right_bottom[0] - left_top[0] + 1
+        if not isinstance(cell2, UnitedCell):
+            cell2 = UnitedCell.convert_cell_to_united_cell(cell2)
 
-        # Checking the neighbourhood of cells
-        if abs(cell2.left_top[0] == cell2.right_bottom[0]):
-            if cell1.coords[0] != cell2.left_top[0]:
-                raise ValueError('Cells are not neighbors')
-
-        elif abs(cell2.left_top[1] == cell2.right_bottom[1]):
-            if cell1.coords[1] != cell2.left_top[1]:
-                raise ValueError('Cells are not neighbors')
-
-        else:
-            raise ValueError('Cells are not neighbors')
-
-        pixel_width = cell2.xy2[0] - cell1.xy1[0]
-        pixel_height = cell2.xy2[1] - cell1.xy1[1]
-        main_cell = self.get_cell(left_top)
-        main_cell.set_main(right_bottom, (width, height), (pixel_width, pixel_height))
-
-        for row in range(left_top[0], right_bottom[0] + 1):
-            for column in range(left_top[1], right_bottom[1] + 1):
-                if (row, column) == left_top:
-                    continue
-                self.get_cell((row, column)).set_parent(main_cell)
-
-    def unite_area(self, left_top, right_bottom, value=None):
-        if not self.check_coordinates(left_top) or not self.check_coordinates(right_bottom):
-            raise IndexError('Invalid coordinates')
-
-        value = value if value else self.get_cell(left_top).text
-
-        width = right_bottom[1] - left_top[1] + 1
-        height = right_bottom[0] - left_top[0] + 1
-        main_cell = self.get_cell(left_top)
-        child_cell = self.get_cell(right_bottom)
-        pixel_width = child_cell.xy2[0] - main_cell.xy1[0]
-        pixel_height = child_cell.xy2[1] - main_cell.xy1[1]
-
-        self.get_cell(left_top).set_main(right_bottom, (width, height), (pixel_width, pixel_height))
-
-        for row in range(left_top[0], right_bottom[0] + 1):
-            for column in range(left_top[1], right_bottom[1] + 1):
-                if (row, column) == left_top:
-                    continue
-                self.get_cell((row, column)).set_parent(main_cell)
+        self._unite_blocks(cell1, cell2)
 
     def unite_cells(self, coordinates1, coordinates2):
-        self._check_coordinates(coordinates1)
-        self._check_coordinates(coordinates2)
 
-        cell1 = self.get_cell(coordinates1)
-        cell2 = self.get_cell(coordinates2)
+        cell1 = self._content[coordinates1[0]][coordinates1[1]]
+        cell2 = self._content[coordinates2[0]][coordinates2[1]]
 
-        if not cell1.unite and not cell2.unite:
+        if not isinstance(cell1, UnitedCell) and not isinstance(cell2, UnitedCell):
             self._unite_cells(cell1, cell2)
+
         elif not cell1.unite and cell2.unite:
             self._unite_cell_with_block(cell1, cell2)
+
         elif cell1.unite and not cell2.unite:
             self._unite_cell_with_block(cell2, cell1)
         elif cell1.unite and cell2.unite:
             self._unite_blocks(cell1, cell2)
+
+
+if __name__ == "__main__":
+    pass
