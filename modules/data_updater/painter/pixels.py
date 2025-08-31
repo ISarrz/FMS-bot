@@ -40,6 +40,14 @@ class Pixels:
             self._container._changed("padding")
 
     @property
+    def center_x(self):
+        return self.center[0]
+
+    @property
+    def center_y(self):
+        return self.center[1]
+
+    @property
     def margin(self):
         return self._margin
 
@@ -107,7 +115,7 @@ class Pixels:
 
     @width.setter
     def width(self, value):
-        self._right_bottom = self.left_top[0] + value -1, self.right_bottom[1]
+        self._right_bottom = self.left_top[0] + value - 1, self.right_bottom[1]
 
         if self.container:
             self._container._changed("width")

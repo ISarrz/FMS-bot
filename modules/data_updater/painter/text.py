@@ -1,4 +1,6 @@
 from PIL import ImageFont
+from typing import List
+
 from modules.config.paths import fonts_path
 from modules.data_updater.painter.pixels import Pixels
 from modules.data_updater.painter.base_container import BaseContainer
@@ -16,13 +18,16 @@ BASE_FONT = get_font("Roboto Medium Regular", size=20)
 
 
 class Text(BaseContainer):
-    _value: str
     _font: ImageFont
     _fill: str
+    _line_space: int = 3
+    _lines: List
+    _horizontal_alignment: str = "left"
 
-    def __init__(self, value="", fill="black", font=BASE_FONT, left_top=(0, 0)):
-        self._font = font
-        self._value = value
+    def __init__(self, value="", fill="black", font="Roboto Medium Regular", size=20, left_top=(0, 0)):
+        self._font = get_font(font, size=size)
+        self._size = size
+        self._lines = value.split("\n")
         self._fill = fill
         self.pixels = Pixels(container=self)
 
@@ -30,9 +35,15 @@ class Text(BaseContainer):
         self.pixels.left_top = left_top
 
     def _update_pixels(self):
-        bbox = self._font.getbbox(self._value)
-        width = bbox[2]
-        height = bbox[3]
+        width = 0
+        height = 0
+        for line in self._lines:
+            pass
+            bbox = self._font.getbbox(line)
+            width = max(width, bbox[2])
+            height += bbox[3]
+
+        height += self._line_space * (len(self._lines) - 1)
 
         self.pixels.width = width
         self.pixels.height = height
@@ -55,7 +66,20 @@ class Text(BaseContainer):
         self._update_pixels()
 
     def draw(self, canvas):
-        canvas.text(self.pixels.left_top, text=self._value, fill=self._fill, font=self._font)
+        cur_pos = self.pixels.left_top
+        for line in self._lines:
+            bbox = self._font.getbbox(line)
+            line_width = bbox[2]
+            line_height = bbox[3]
+            if self._horizontal_alignment == "left":
+                pass
+
+            if self._horizontal_alignment == "center":
+                line_left_x = self.pixels.center_x - line_width // 2
+                cur_pos = (line_left_x, cur_pos[1])
+
+            canvas.text(cur_pos, text=line, fill=self._fill, font=self._font)
+            cur_pos = (self.pixels.left_x, cur_pos[1] + line_height + self._line_space)
 
 
 if __name__ == "__main__":

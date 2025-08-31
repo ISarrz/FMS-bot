@@ -15,6 +15,7 @@ class Column(BaseContainer):
     _cell_height: int = 0
     _cell_vertical_alignment = "center"
     _cell_horizontal_alignment = "center"
+    _cell_space=0
     _height: int=0
 
     def _changed(self, field):
@@ -54,7 +55,7 @@ class Column(BaseContainer):
             cell.pixels.height = self._cell_height
 
             cell.pixels.left_top = current_point
-            current_point = (cell.pixels.left_x, cell.pixels.bottom_y)
+            current_point = (cell.pixels.left_x, cell.pixels.bottom_y + self._cell_space)
 
     def draw(self, canvas):
         for cell in self._content:

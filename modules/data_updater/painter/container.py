@@ -35,7 +35,7 @@ class Container(BaseContainer):
     def left_outline_color(self):
         return self._left_outline_color
 
-    @left_outline_color.setter
+
     def left_outline_color(self, value):
         self._left_outline_color = value
 
@@ -104,13 +104,13 @@ class Container(BaseContainer):
         self._horizontal_alignment = value
         self._update_pixels()
 
-    def draw(self, canvas):
-        cords = (self.pixels.left_x, self.pixels.top_y, self.pixels.right_x, self.pixels.bottom_y)
-        canvas.rectangle(cords,
-                         fill=self._fill,
-                         outline=None,
-                         width=0)
+    def draw_content(self, canvas):
+        if self._content is not None:
+            self._content.draw(canvas)
 
+    def draw_outline(self, canvas):
+        if not self.outline_size:
+            return
         left_x = self.pixels.left_x
         right_x = self.pixels.right_x
         top_y = self.pixels.top_y
@@ -122,17 +122,27 @@ class Container(BaseContainer):
         right_top = (right_x, top_y)
         left_bottom = (left_x, bottom_y)
         right_bottom = (right_x, bottom_y)
-        if self.outline_size:
-            canvas.line((left_x - gap1, top_y, right_x + gap2, top_y), fill=self.top_outline_color,
-                        width=self._outline_size)
-            canvas.line((left_x, top_y - gap1, left_x, bottom_y + gap2), fill=self.left_outline_color,
-                        width=self._outline_size)
-            canvas.line((left_x - gap1, bottom_y, right_x + gap2, bottom_y), fill=self.bottom_outline_color,
-                        width=self._outline_size)
-            canvas.line((right_x, top_y - gap1, right_x, bottom_y + gap2), fill=self.right_outline_color,
-                        width=self._outline_size)
-        if self._content:
-            self._content.draw(canvas)
+
+        canvas.line((left_x - gap1, top_y, right_x + gap2, top_y), fill=self.top_outline_color,
+                    width=self._outline_size)
+        canvas.line((left_x, top_y - gap1, left_x, bottom_y + gap2), fill=self.left_outline_color,
+                    width=self._outline_size)
+        canvas.line((left_x - gap1, bottom_y, right_x + gap2, bottom_y), fill=self.bottom_outline_color,
+                    width=self._outline_size)
+        canvas.line((right_x, top_y - gap1, right_x, bottom_y + gap2), fill=self.right_outline_color,
+                    width=self._outline_size)
+
+    def draw_inside(self, canvas):
+        cords = (self.pixels.left_x, self.pixels.top_y, self.pixels.right_x, self.pixels.bottom_y)
+        canvas.rectangle(cords,
+                         fill=self._fill,
+                         outline=None,
+                         width=0)
+
+    def draw(self, canvas):
+        self.draw_inside(canvas)
+        self.draw_outline(canvas)
+        self.draw_content(canvas)
 
     def _changed(self, field):
         if field == "padding":
