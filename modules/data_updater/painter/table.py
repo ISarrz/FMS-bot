@@ -12,26 +12,6 @@ from modules.data_updater.painter.united_cell import UnitedCell
 from modules.data_updater.painter.cell import Cell
 
 
-class Border(BaseContainer):
-    _width: int
-    _length: int
-    _color: int
-    _orientation: str
-
-    def draw(self, canvas):
-        if self._orientation == "horizontal":
-            canvas.line((self.pixels.left_x, self.pixels.top_y, self.pixels.left_x + self._length,
-                         self.pixels.top_y),
-                        fill=self._color,
-                        width=self._width)
-
-        elif self._orientation == "vertical":
-            canvas.line((self.pixels.left_x, self.pixels.top_y, self.pixels.left_x,
-                         self.pixels.top_y + self._length),
-                        fill=self._color,
-                        width=self._width)
-
-
 class Table(BaseContainer):
     _content: List
     _columns_width: List[int]
@@ -43,10 +23,9 @@ class Table(BaseContainer):
     pixels = Pixels
     _vertical_alignment: str = "center"
     _horizontal_alignment: str = "center"
-    _outline_size: int | None = None
+    _outline_width: int | None = None
     _outline_color: str | None = None
-    _vertical_borders: List[Border]
-    _horizontal_borders: List[Border]
+    _changes=True
 
     def __init__(self, left_top=(0, 0), content=None):
         self.pixels = Pixels(container=self)
@@ -56,32 +35,29 @@ class Table(BaseContainer):
         self._same_column_width = [column for column in range(self._width)]
         self._same_row_height = [row for row in range(self._height)]
 
-        self._vertical_borders = [Border() for _ in range(self._width + 1)]
-        for i in self._vertical_borders:
-            i._orientation = "vertical"
-
-        self._horizontal_borders = [Border() for _ in range(self._height + 1)]
-        for i in self._horizontal_borders:
-            i._orientation = "horizontal"
-
         self.pixels.left_top = left_top
 
         self._update_pixels()
 
-    def _cell_outline_changed(self, value: str, cell: Cell):
-        print(value)
-
     def _changed(self, field):
+        if self._changes:
+            self._changes = False
+            self._update_pixels()
+            self._changes = True
+        return
         if field == "padding":
             self._update_pixels()
 
-    @property
-    def outline_size(self):
-        return self._outline_size
+        if field == "outline_width":
+            self._update_pixels()
 
-    @outline_size.setter
-    def outline_size(self, value):
-        self._outline_size = value
+    @property
+    def outline_width(self):
+        return self._outline_width
+
+    @outline_width.setter
+    def outline_width(self, value):
+        self._outline_width = value
         self._update_content()
 
     @property
@@ -103,8 +79,6 @@ class Table(BaseContainer):
                     if self.pixels.padding:
                         cell.pixels.padding = self.pixels.padding
 
-                    if self.outline_size:
-                        cell.outline_size = self.outline_size
 
                     if self.outline_color:
                         cell.outline_color = self.outline_color
@@ -212,8 +186,10 @@ class Table(BaseContainer):
                     width_end = cell.width + width_start
                     height_start = cell.coordinates[0]
                     height_end = cell.height + height_start
-                    width = sum(self._columns_width[width_start:width_end]) - cell.width + 1
-                    height = sum(self._rows_height[height_start:height_end]) - cell.height + 1
+                    width = sum(self._columns_width[width_start:width_end])
+                    # for i in range(width_start, width_end):
+                    #     width += self._content[row][i].pixels.padding * 2
+                    height = sum(self._rows_height[height_start:height_end])
                     self._content[row][column].pixels.width = width
                     self._content[row][column].pixels.height = height
 
@@ -293,6 +269,7 @@ class Table(BaseContainer):
             united_cell2 = UnitedCell.convert_cell_to_united_cell(cell2)
 
         self._unite_blocks(united_cell1, united_cell2)
+        # self._update_pixels()
 
 
 if __name__ == "__main__":

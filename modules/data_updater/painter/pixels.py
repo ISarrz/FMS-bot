@@ -35,6 +35,8 @@ class Pixels:
 
     @padding.setter
     def padding(self, value):
+        if self.padding == value:
+            return
         self._padding = value
         if self.container:
             self._container._changed("padding")
@@ -53,6 +55,8 @@ class Pixels:
 
     @margin.setter
     def margin(self, value):
+        if self.margin == value:
+            return
         self._margin = value
         if self.container:
             self._container._changed("margin")
@@ -95,6 +99,9 @@ class Pixels:
 
     @left_top.setter
     def left_top(self, value: tuple[int, int]):
+        if self.left_top == value:
+            return
+
         width = self.width
         height = self.height
         self._left_top = value
@@ -105,6 +112,9 @@ class Pixels:
 
     @right_bottom.setter
     def right_bottom(self, value: tuple[int, int]):
+        if self.right_bottom == value:
+            return
+
         width = self.width
         height = self.height
         self._right_bottom = value
@@ -115,6 +125,8 @@ class Pixels:
 
     @width.setter
     def width(self, value):
+        if self.width == value:
+            return
         self._right_bottom = self.left_top[0] + value - 1, self.right_bottom[1]
 
         if self.container:
@@ -122,6 +134,8 @@ class Pixels:
 
     @height.setter
     def height(self, value):
+        if self.height == value:
+            return
         self._right_bottom = self.right_bottom[0], self.left_top[1] + value - 1
 
         if self.container:
@@ -129,6 +143,8 @@ class Pixels:
 
     @center.setter
     def center(self, value):
+        if self.center == value:
+            return
         width = self.width
         height = self.height
         left_width = (width + 1) // 2

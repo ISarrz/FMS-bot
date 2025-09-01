@@ -101,6 +101,11 @@ class Parser:
             start = ""
             end = ""
 
+        name = value
+        event = CnEvent(name=name, group_id=-1, date=self.date, start=start, end=end, owner="", place="")
+
+        return event
+
         name = find_pattern(value, events_name_patterns)
 
         owner = "\n".join(find_all_patterns(value, events_owner_patterns))

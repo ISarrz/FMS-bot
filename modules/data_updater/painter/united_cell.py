@@ -23,16 +23,6 @@ class UnitedCell(Cell):
         united_cell.coordinates = cell.coordinates
         united_cell.left_top = cell.coordinates
         united_cell.right_bottom = cell.coordinates
-        united_cell.outline_size = cell.outline_size
-        united_cell.outline_color = cell.outline_color
-        united_cell.fill = cell.fill
-        united_cell._radius = cell._radius
-        united_cell.vertical_alignment = cell.vertical_alignment
-        united_cell.horizontal_alignment = cell.horizontal_alignment
-        united_cell.left_outline_color = cell.left_outline_color
-        united_cell.right_outline_color = cell.right_outline_color
-        united_cell.top_outline_color = cell.top_outline_color
-        united_cell.bottom_outline_color = cell.bottom_outline_color
 
         united_cell.set_main(united_cell, united_cell)
 
@@ -60,6 +50,8 @@ class UnitedCell(Cell):
         self.left_top = self.coordinates
 
     def set_main(self, main_cell: UnitedCell, child_cell: UnitedCell):
+        self.content = main_cell.content
+        self._table = main_cell._table
         self.pixels.left_top = main_cell.pixels.left_top
         self.pixels.width = child_cell.pixels.right_x - main_cell.pixels.left_x + 1
         self.pixels.height = child_cell.pixels.bottom_y - main_cell.pixels.top_y + 1
@@ -70,8 +62,4 @@ class UnitedCell(Cell):
         self.coordinates = main_cell.coordinates
         self.left_top = main_cell.coordinates
         self.right_bottom = (self.top_row + self.height - 1, self.left_column + self.width - 1)
-        self.horizontal_alignment = main_cell.horizontal_alignment
-        self.vertical_alignment = main_cell.vertical_alignment
-        self._outline_size = main_cell.outline_size
-        self.content = main_cell.content
         self.pixels.padding = main_cell.pixels.padding
