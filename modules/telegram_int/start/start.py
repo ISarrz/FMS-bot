@@ -1,13 +1,12 @@
+from modules.config import get_telegram_message
+from modules.database import Group, User
+from modules.logger.logger import async_logger
+
 from telegram.ext import (
     ConversationHandler,
     CommandHandler,
     MessageHandler,
-    filters
-)
-# from modules.files_api.config import *
-from modules.config import *
-from modules.database.user.user import UserAlreadyExistsError
-from telegram.ext import (
+    filters,
     ContextTypes,
     CallbackQueryHandler,
 )
@@ -16,9 +15,7 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
-from modules.database import *
-from modules.logger import *
-from modules.logger.logger import async_logger, logger
+
 
 @async_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -36,6 +33,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # print(message.message_id)
 
     return 0
+
 
 @async_logger
 async def grade_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -55,30 +53,9 @@ async def grade_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return 1
 
+
 @async_logger
 async def get_tens_reply_markup():
-    keyboard = []
-    keyboard.append([
-        InlineKeyboardButton(text="Μ", callback_data="Μ"),
-        InlineKeyboardButton(text="Ξ", callback_data="Ξ"),
-        InlineKeyboardButton(text="Ο", callback_data="Ο"),
-        InlineKeyboardButton(text="Π", callback_data="Π"),
-        InlineKeyboardButton(text="Ρ", callback_data="Ρ")
-    ])
-    keyboard.append([
-        InlineKeyboardButton(text="Σ", callback_data="Σ"),
-        InlineKeyboardButton(text="Τ", callback_data="Τ"),
-        InlineKeyboardButton(text="Φ", callback_data="Φ"),
-        InlineKeyboardButton(text="Χ", callback_data="Χ"),
-        InlineKeyboardButton(text="Ψ", callback_data="Ψ"),
-    ])
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    return reply_markup
-
-@async_logger
-async def get_elevens_reply_markup():
     keyboard = []
     keyboard.append([
         InlineKeyboardButton(text="Β", callback_data="Β"),
@@ -98,6 +75,31 @@ async def get_elevens_reply_markup():
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     return reply_markup
+
+
+@async_logger
+async def get_elevens_reply_markup():
+    keyboard = []
+    keyboard.append([
+        InlineKeyboardButton(text="Μ", callback_data="Μ"),
+        InlineKeyboardButton(text="Ξ", callback_data="Ξ"),
+        InlineKeyboardButton(text="Ο", callback_data="Ο"),
+        InlineKeyboardButton(text="Π", callback_data="Π"),
+        InlineKeyboardButton(text="Ρ", callback_data="Ρ")
+    ])
+    keyboard.append([
+        InlineKeyboardButton(text="Σ", callback_data="Σ"),
+        InlineKeyboardButton(text="Τ", callback_data="Τ"),
+        InlineKeyboardButton(text="Φ", callback_data="Φ"),
+        InlineKeyboardButton(text="Χ", callback_data="Χ"),
+        InlineKeyboardButton(text="Ψ", callback_data="Ψ"),
+    ])
+
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    return reply_markup
+
 
 @async_logger
 async def school_class_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -120,6 +122,7 @@ async def school_class_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     return 2
+
 
 @async_logger
 async def class_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -146,6 +149,7 @@ async def class_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return 3
 
+
 @async_logger
 async def get_academic_group_reply_markup():
     keyboard = []
@@ -170,6 +174,7 @@ async def get_academic_group_reply_markup():
 
     return reply_markup
 
+
 @async_logger
 async def academic_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = context.chat_data["start_message"]
@@ -189,6 +194,7 @@ async def academic_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
     return 4
+
 
 @async_logger
 async def end(update: Update, context: ContextTypes.DEFAULT_TYPE):

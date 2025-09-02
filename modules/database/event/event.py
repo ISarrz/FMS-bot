@@ -50,9 +50,13 @@ class EventDeleter:
         DB.delete_one(DB.events_table_name, id=event.id)
 
         group = event.group_id
-        users = User.by_group(group)
-        for user in users:
-            DB.delete_one(DB.timetable_table_name, user_id=user.id, date=event.date)
+        try:
+
+            users = User.by_group(group)
+            for user in users:
+                DB.delete_one(DB.timetable_table_name, user_id=user.id, date=event.date)
+        except Exception:
+            pass
 
 
 class EventUpdater:

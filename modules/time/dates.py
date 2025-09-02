@@ -19,7 +19,7 @@ WEEKDAY_PADDING = 2
 
 def get_current_week():
     now = dt.datetime.now(timezone)
-    now = dt.datetime.strptime("14.04.2025", "%d.%m.%Y")
+    # now = dt.datetime.strptime("14.04.2025", "%d.%m.%Y")
 
     cur_monday = now - dt.timedelta(days=now.weekday())
 
@@ -28,7 +28,7 @@ def get_current_week():
 
 def get_next_week():
     now = dt.datetime.now(timezone)
-    now = dt.datetime.strptime("14.04.2025", "%d.%m.%Y")
+    # now = dt.datetime.strptime("14.04.2025", "%d.%m.%Y")
 
     cur_monday = now - dt.timedelta(days=now.weekday())
     next_monday = cur_monday + dt.timedelta(days=7)
@@ -38,7 +38,7 @@ def get_next_week():
 
 def get_previous_week():
     now = dt.datetime.now(timezone)
-    now = dt.datetime.strptime("14.04.2025", "%d.%m.%Y")
+    # now = dt.datetime.strptime("14.04.2025", "%d.%m.%Y")
 
     cur_monday = now - dt.timedelta(days=now.weekday())
     previous_monday = cur_monday - dt.timedelta(days=7)

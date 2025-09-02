@@ -1,5 +1,4 @@
-from modules.database.timetable.timetable import Timetable
-from modules.time import *
+from modules.time import get_current_week_string_days, get_current_week_string_weekdays
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -15,6 +14,7 @@ from telegram.ext import (
 )
 from modules.database import User
 from modules.logger.logger import async_logger
+
 
 def get_sheet(user: User):
     timetable = []
@@ -42,6 +42,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         message = await update.message.reply_text(text="Расписания нет", reply_markup=sheet)
     return 0
+
 
 @async_logger
 async def send_timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):

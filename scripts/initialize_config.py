@@ -1,6 +1,6 @@
 import json
-from modules.files_api.paths import config_path
 import modules.database
+from modules.config.paths import config_path
 
 
 def initialize_config():

@@ -1,43 +1,18 @@
 from modules.database import *
 from modules.config import *
-# from modules.time.dates import *
-# from modules.logger.logger import *
-# from modules.telegram_int.admin.admin_panel import ConversationHandler_admin_panel
-# from modules.telegram_int.settings.settings_menu import ConversationHandler_settings
 from modules.telegram_int.timetable.timetable import ConversationHandler_timetable
 from modules.telegram_int.start.start import ConversationHandler_start
+from modules.logger.logger import async_logger, logger
+from modules.config.paths import database_dump_path
 from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
+    Update
 )
 from telegram.ext import (
-    ContextTypes,
-    CallbackQueryHandler,
-    ApplicationBuilder
-)
-from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-
-    MessageHandler,
-    filters,
-
-)
-from telegram.ext import (
+    ApplicationBuilder,
     CallbackContext,
     ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters
+    CommandHandler
 )
-
-from modules.logger.logger import async_logger
-from modules.config.paths import database_dump_path
 
 
 async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -66,12 +41,17 @@ async def send_users_notifications(context: CallbackContext):
             notification.delete()
 
 
+@async_logger
+async def send_logs(context: CallbackContext):
+    chat_id = get_config_field("logs_chat_id")
+    for log in Log.all():
+        await context.bot.send_message(chat_id=chat_id, text=log.value)
+        log.delete()
+
+
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(text=str(chat_id))
-
-
-from modules.logger.logger import async_logger, logger
 
 
 @logger
@@ -87,7 +67,7 @@ def main():
 
     job_deque = application.job_queue
     job_deque.run_repeating(send_users_notifications, 60)
-    # job_deque.run_repeating(send_logs, 20)
+    job_deque.run_repeating(send_logs, 20)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 

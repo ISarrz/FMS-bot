@@ -74,14 +74,22 @@ def get_image(date, group, events):
     content[0][0]._horizontal_alignment = "center"
 
     content[0][1] = Text(value=group, font="Roboto Black", size=40, fill="white")
+    lesson_number = 1
+    try:
+        if "ассамбл" in content[1][1].lower():
+            lesson_number = 0
+    except Exception as e:
+        pass
+
     for i in range(1, len(events) + 1):
         column = Column(outline_width=0)
         column._cell_space = -5
         event = events[i - 1]
         column.add(Text(value=event.start, font="Roboto Black", size=20, fill="#424549"))
-        column.add(Text(value=f"{i}", font="Roboto Black", size=40, fill="white"))
+        column.add(Text(value=f"{lesson_number}", font="Roboto Black", size=40, fill="white"))
         column.add(Text(value=event.end, font="Roboto Black", size=20, fill="#424549"))
         content[i][0] = column
+        lesson_number += 1
 
         value = normalize_value(event.name)
         content[i][1] = Text(value=value, font="Roboto Bold", size=30, fill="white")
@@ -125,12 +133,6 @@ def get_image(date, group, events):
 
     table[0][0].fill = "#282b30"
     table[0][1].fill = "#282b30"
-    # table.unite_cells((0, 1), (1, 1))
-    # table.unite_cells((0, 0), (1, 1))
-    # table.squeeze()
-    # table._update_pixels()
-
-    # table.squeeze()
     image = Image.new('RGB', (table.pixels.width + 20, table.pixels.height + 20), "#282b30")
     canvas = ImageDraw.Draw(image)
     table.draw(canvas)

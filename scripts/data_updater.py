@@ -1,7 +1,3 @@
-import sched
-import shutil
-from datetime import datetime
-
 import schedule
 import time
 import asyncio
@@ -10,7 +6,8 @@ from modules.data_updater.web_parser.web_parser import WebParser
 from modules.data_updater.data_cleaner.data_cleaner import DataCleaner
 from modules.data_updater.files_parser.parser import Parser
 from modules.data_updater.painter import updater
-from modules.logger.logger import async_logger, logger
+from modules.logger.logger import logger
+
 
 def run_painter():
     updater.update()
@@ -32,6 +29,7 @@ async def web_parse():
 
 def run_web_parser():
     asyncio.run(web_parse())
+
 
 @logger
 def run_data_update():
@@ -55,4 +53,3 @@ def data_update_run_repeat():
 if __name__ == "__main__":
     # data_update_run_once()
     data_update_run_repeat()
-    # run_repeat()
