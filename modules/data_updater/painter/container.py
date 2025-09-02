@@ -7,20 +7,20 @@ from modules.data_updater.painter.base_container import BaseContainer
 
 class Container(BaseContainer):
     pixels: Pixels
-    _outline_width: int | None = 1
+    _outline_width: int = 1
     _left_outline_width: int = 1
     _right_outline_width: int = 1
     _top_outline_width: int = 1
     _bottom_outline_width: int = 1
 
-    _outline_color: str | None = "black"
+    _outline_color: str = "black"
     _left_outline_color: str = "black"
     _right_outline_color: str = "black"
     _top_outline_color: str = "black"
     _bottom_outline_color: str = "black"
 
-    _fill: str | None = None
-    _content: None | BaseContainer = None
+    _fill: str = None
+    _content:  BaseContainer = None
     _vertical_alignment = "top"
     _horizontal_alignment = "left"
 
