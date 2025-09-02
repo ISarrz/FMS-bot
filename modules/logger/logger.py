@@ -1,9 +1,7 @@
-import traceback
-
-from modules.database_api.interaction.insert import insert_logs
 from datetime import datetime
+from modules.database.log.log import Log
 
-
+import traceback
 def logger(func):
     def wrapper(*args, **kwargs):
         try:
@@ -11,8 +9,8 @@ def logger(func):
         except Exception as e:
             now = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
             text = f'{now}: {func.__name__}\n{repr(e)}\n'
-            text +=  traceback.format_exc()
-            insert_logs(text)
+            text += traceback.format_exc()
+            Log.insert(text)
 
     return wrapper
 
@@ -25,6 +23,6 @@ def async_logger(func):
             now = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
             text = f'{now}: {func.__name__}\n{repr(e)}\n'
             text += traceback.format_exc()
-            insert_logs(text)
+            Log.insert(text)
 
     return wrapper
