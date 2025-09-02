@@ -34,7 +34,7 @@ def update_user(user: User):
     if not dates:
         return
     notifications = user.notifications
-    notifications.append(f"Доступно расписание на {(", ").join(dates)}")
+    notifications.append(f"Доступно расписание на {(', ').join(dates)}")
     user.notifications = notifications
 
 
