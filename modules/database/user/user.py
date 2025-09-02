@@ -7,7 +7,7 @@ from modules.database.database.database import DB
 from modules.database.group.group import Group
 from modules.database.user.user_settings import UserSettings
 from modules.database.event.event import Event
-from modules.database.timetable.timetable import Timetable
+from modules.database.timetable.timetable import Timetable, TimetableNotFoundError
 from modules.database.user.user_notification import UserNotification
 
 
@@ -180,6 +180,13 @@ class User:
         return []
 
     @staticmethod
+    def safe_insert(telegram_id: int):
+        try:
+            User.insert(telegram_id=telegram_id)
+        except UserAlreadyExistsError:
+            pass
+
+    @staticmethod
     def insert(telegram_id: int) -> User:
         try:
             User(telegram_id=telegram_id)
@@ -196,7 +203,10 @@ class User:
         return Timetable.user_timetable(user_id=self.id)
 
     def get_date_timetable(self, date: str) -> Timetable:
-        return Timetable(user_id=self.id, date=date)
+        try:
+            return Timetable(user_id=self.id, date=date)
+        except TimetableNotFoundError:
+            return None
 
     def insert_timetable(self, date: str, image: bytes):
         return Timetable.insert(user_id=self.id, date=date, image=image)
@@ -210,6 +220,8 @@ class User:
 
     def delete_group(self, group: Group):
         UserDeleter.delete_group(user_id=self.id, group_id=group.id)
+
+
 
     def date_events(self, date: str) -> List[Event]:
         user_groups = self.groups

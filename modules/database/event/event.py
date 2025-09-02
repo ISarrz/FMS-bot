@@ -255,9 +255,12 @@ class Event:
     def by_group_and_date(group: Group, date: str):
         events = EventFetcher.fetch_by_group_id_and_date(group_id=group.id, date=date)
         if events:
-            return sorted([Event(db_event=event_info) for event_info in events],
-                          key=lambda event: (datetime.strptime(event.start, "%H:%M"),
-                                             datetime.strptime(event.end, "%H:%M")))
+            events = [Event(db_event=event_info) for event_info in events]
+            events_with_time = sorted([event for event in events if event.start and event.end],
+                                      key=lambda event: (datetime.strptime(event.start, "%H:%M"),
+                                                         datetime.strptime(event.end, "%H:%M")))
+            events_without_time = [event for event in events if event not in events_with_time]
+            return events_without_time + events_with_time
 
         return []
 

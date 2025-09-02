@@ -1,6 +1,6 @@
 
 from datetime import datetime
-
+from modules.database.log.log import Log
 
 def logger(func):
     def wrapper(*args, **kwargs):
@@ -9,7 +9,8 @@ def logger(func):
         except Exception as e:
             now = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
             text = f'{now}: {func.__name__}\n{repr(e)}'
-            insert_logs(text)
+            Log.insert(text)
+
 
     return wrapper
 
@@ -21,6 +22,6 @@ def async_logger(func):
         except Exception as e:
             now = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
             text = f'{now}: {func.__name__}\n{repr(e)}'
-            insert_logs(text)
+            Log.insert(text)
 
     return wrapper

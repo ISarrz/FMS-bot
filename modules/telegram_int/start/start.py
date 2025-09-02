@@ -4,28 +4,23 @@ from telegram.ext import (
     MessageHandler,
     filters
 )
-from modules.telegram_int.admin.symbols import *
 # from modules.files_api.config import *
 from modules.config import *
 from modules.database.user.user import UserAlreadyExistsError
-# from modules.telegram_int.admin.events_menu import (
-#     update_events_groups_mode_menu,
-#     update_add_event_menu,
-#     update_dates_menu,
-#     update_events_events_mode_menu,
-#     update_edit_event_menu,
-#     get_dates_menu_sheets,
-#     get_events_events_mode_menu_sheets,
-#     get_events_groups_mode_menu_sheets,
-#     add_event,
-#     edit_event,
-#     edit_event_menu_response, delete_event_response
-#
-# )
-from modules.telegram_int.admin.groups_menu import *
-from modules.telegram_int.admin.main_menu import *
+from telegram.ext import (
+    ContextTypes,
+    CallbackQueryHandler,
+)
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
+from modules.database import *
+from modules.logger import *
+from modules.logger.logger import async_logger, logger
 
-
+@async_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = get_telegram_message("info")
 
@@ -36,16 +31,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     message = await update.message.reply_text(text=text, reply_markup=reply_markup)
     context.chat_data["start_message"] = message
-    try:
-        User.insert(telegram_id=update.effective_chat.id)
-    except UserAlreadyExistsError:
-        pass
+    User.safe_insert(update.effective_chat.id)
 
     # print(message.message_id)
 
     return 0
 
-
+@async_logger
 async def grade_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = context.chat_data["start_message"]
     keyboard = []
@@ -63,7 +55,7 @@ async def grade_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return 1
 
-
+@async_logger
 async def get_tens_reply_markup():
     keyboard = []
     keyboard.append([
@@ -85,7 +77,7 @@ async def get_tens_reply_markup():
 
     return reply_markup
 
-
+@async_logger
 async def get_elevens_reply_markup():
     keyboard = []
     keyboard.append([
@@ -107,7 +99,7 @@ async def get_elevens_reply_markup():
 
     return reply_markup
 
-
+@async_logger
 async def school_class_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = context.chat_data["start_message"]
     query = update.callback_query
@@ -129,7 +121,7 @@ async def school_class_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return 2
 
-
+@async_logger
 async def class_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = context.chat_data["start_message"]
     query = update.callback_query
@@ -138,7 +130,7 @@ async def class_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.chat_data["class"] = income
     keyboard = []
     keyboard.append([
-        InlineKeyboardButton(text="Группа A", callback_data="Группа A"),
+        InlineKeyboardButton(text="Группа A", callback_data="Группа А"),
         InlineKeyboardButton(text="Группа Б", callback_data="Группа Б")
     ])
 
@@ -154,7 +146,7 @@ async def class_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return 3
 
-
+@async_logger
 async def get_academic_group_reply_markup():
     keyboard = []
     keyboard.append([
@@ -178,7 +170,7 @@ async def get_academic_group_reply_markup():
 
     return reply_markup
 
-
+@async_logger
 async def academic_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = context.chat_data["start_message"]
     query = update.callback_query
@@ -198,7 +190,7 @@ async def academic_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     return 4
 
-
+@async_logger
 async def end(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = context.chat_data["start_message"]
     query = update.callback_query
@@ -221,6 +213,9 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE):
     academic_group = Group(name=context.chat_data["academic_group"], parent=grade)
     for group in user.groups:
         user.delete_group(group)
+
+    for timetable in user.timetable:
+        timetable.delete()
 
     user.insert_group(grade)
     user.insert_group(school_class)

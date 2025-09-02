@@ -3,7 +3,7 @@ from PIL import ImageFont, ImageDraw, Image
 from modules.data_updater.painter.table import Table
 from modules.data_updater.painter.column import Column
 from modules.data_updater.painter.text import Text
-
+from modules.time import *
 
 def table():
     # image = Image.new('RGB', (560, 1023), "#282b30")
@@ -23,7 +23,7 @@ def table():
     column1.add(Text(value="9:15", font="Roboto Black", size=20, fill="#424549"))
 
     content[1][0] = column1
-    content[1][1] = Text(value="Математика", font="Roboto Bold", size=30, fill="white")
+    content[1][1] = Text(value="Математика\naas", font="Roboto Bold", size=30, fill="white")
 
     column2 = Column(outline_width=0)
     column2.add(Text(value="9:25", font="Roboto Black", size=20, fill="#424549"))
@@ -128,4 +128,6 @@ def simple():
 
 
 if __name__ == "__main__":
-    table()
+    print(get_current_week_string_weekdays())
+    print(get_current_week_string_days())
+

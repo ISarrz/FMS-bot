@@ -48,14 +48,14 @@ def get_previous_week():
 
 def get_current_week_string_days():
     current_dates = get_current_week()
-    current_string_dates = [date.strftime('%d.%m') for date in current_dates]
+    current_string_dates = [date.strftime('%d.%m.%Y') for date in current_dates]
 
     return current_string_dates
 
 
 def get_next_week_string_days():
     current_dates = get_next_week()
-    current_string_dates = [date.strftime('%d.%m') for date in current_dates]
+    current_string_dates = [date.strftime('%d.%m.%Y') for date in current_dates]
 
     return current_string_dates
 

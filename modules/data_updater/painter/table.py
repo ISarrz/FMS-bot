@@ -194,9 +194,11 @@ class Table(BaseContainer):
                     self._content[row][column].pixels.height = height
 
     def squeeze(self):
+        self._changes = False
         for row in range(self._height):
             for column in range(self._width):
                 self._content[row][column].squeeze()
+        self._changes = True
 
         self._update_pixels()
 
