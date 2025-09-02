@@ -1,10 +1,10 @@
 from __future__ import annotations
-from typing import List, Self
+from typing import List
 from modules.data_updater.painter.cell import Cell
 
 
 class UnitedCell(Cell):
-    parent: None | Self = None
+    parent: None  = None
     width: int
     height: int
     left_top: tuple[int, int]
@@ -40,7 +40,7 @@ class UnitedCell(Cell):
     def bottom_row(self):
         return self.right_bottom[0]
 
-    def set_parent(self, parent: Self, child_cell):
+    def set_parent(self, parent, child_cell):
         self.pixels.width = 0
         self.pixels.height = 0
         self.parent = parent
