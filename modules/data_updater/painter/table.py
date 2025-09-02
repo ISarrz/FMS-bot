@@ -1,13 +1,7 @@
 from __future__ import annotations
-from typing import List, Self
-from PIL import ImageFont, ImageDraw, Image
-# from modules.data_updater.painter.style import *
-# from modules.data_updater.painter.constants import *
-# from modules.data_updater.painter.cell import *
+from typing import List
 from modules.data_updater.painter.base_container import BaseContainer
 from modules.data_updater.painter.pixels import Pixels
-from modules.data_updater.painter.container import Container
-from modules.data_updater.painter.text import Text
 from modules.data_updater.painter.united_cell import UnitedCell
 from modules.data_updater.painter.cell import Cell
 

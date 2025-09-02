@@ -1,7 +1,6 @@
 from modules.database.user.user import User
 from modules.database.event.event import Event
 from modules.time.dates import get_current_string_dates
-from typing import List
 from PIL import ImageFont, ImageDraw, Image
 from modules.data_updater.painter.table import Table
 from modules.data_updater.painter.column import Column
