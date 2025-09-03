@@ -253,7 +253,8 @@ class DB:
                             id      INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id INTEGER REFERENCES users,
                             date    TEXT,
-                            image   BLOB
+                            image   BLOB,
+                            text    TEXT
                         )""")
 
     @staticmethod
@@ -278,7 +279,8 @@ class DB:
                         (
                             id            INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id       parent_id INTEGER REFERENCES users,
-                            notifications INT
+                            notifications INT,
+                            mode TEXT
                         )""")
 
     @staticmethod

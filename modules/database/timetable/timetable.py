@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-
 from dataclasses import dataclass
 from modules.database.database.database import DB
+
 
 class TimetableNotFoundError(Exception):
     def __str__(self) -> str:
@@ -20,6 +20,7 @@ class DbTimetable:
     user_id: int
     date: str
     image: bytes
+    text: str
 
 
 class TimetableFetcher:
@@ -59,8 +60,8 @@ class ImageDeleter:
 
 class ImageInserter:
     @staticmethod
-    def insert(user_id: int, date: str, image: bytes):
-        DB.insert_one(DB.timetable_table_name, user_id=user_id, date=date, image=image)
+    def insert(user_id: int, date: str, image: bytes, text:str):
+        DB.insert_one(DB.timetable_table_name, user_id=user_id, date=date, image=image, text=text)
 
 
 class Timetable:
@@ -69,7 +70,7 @@ class Timetable:
     def __init__(self, *args, **kwargs):
         kwargs_keys = set(kwargs.keys())
 
-        fields = ["id", "user_id", "date", "image", "db_timetable"]
+        fields = ["id", "user_id", "date", "image", "db_timetable", "text"]
         for field in kwargs.keys():
             if field not in fields:
                 raise IncorrectTimetableArgumentsError
@@ -106,10 +107,14 @@ class Timetable:
     def image(self) -> bytes:
         return self._timetable.image
 
+    @property
+    def text(self) -> str:
+        return self._timetable.text
+
     @staticmethod
-    def insert(user_id: int, date: str, image: bytes):
-        ImageInserter.insert(user_id, date, image)
-        return Timetable(user_id=user_id, date=date, image=image)
+    def insert(user_id: int, date: str, image: bytes, text: str):
+        ImageInserter.insert(user_id, date, image, text)
+        return Timetable(user_id=user_id, date=date, image=image, text=text)
 
     @staticmethod
     def user_timetable(user_id: int):

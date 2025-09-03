@@ -2,6 +2,7 @@ from modules.database import *
 from modules.config import *
 from modules.telegram_int.timetable.timetable import ConversationHandler_timetable
 from modules.telegram_int.start.start import ConversationHandler_start
+from modules.telegram_int.settings.settings import ConversationHandler_settings
 from modules.logger.logger import async_logger, logger
 from modules.config.paths import database_dump_path
 from telegram import (
@@ -37,7 +38,13 @@ async def info_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def send_users_notifications(context: CallbackContext):
     for user in User.all():
         for notification in user.notifications:
-            await context.bot.send_message(chat_id=user.telegram_id, text=notification.value)
+            try:
+                if user.settings.notifications:
+                    await context.bot.send_message(chat_id=user.telegram_id, text=notification.value)
+
+            except Exception as e:
+                pass
+
             notification.delete()
 
 
@@ -64,9 +71,10 @@ def main():
     application.add_handler(CommandHandler('get_database', get_database))
     application.add_handler(ConversationHandler_start, 1)
     application.add_handler(ConversationHandler_timetable, 2)
+    application.add_handler(ConversationHandler_settings, 3)
 
     job_deque = application.job_queue
-    job_deque.run_repeating(send_users_notifications, 60)
+    job_deque.run_repeating(send_users_notifications, 20)
     job_deque.run_repeating(send_logs, 20)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)

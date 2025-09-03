@@ -26,9 +26,10 @@ def update_user(user: User):
         relation_path = group.relation_path
         group = f"{relation_path[-2].name}  {relation_path[-1].name}"
         image = get_image(date, group, events)
+        text = get_text(date, group, events)
         dates.append(date)
 
-        user.insert_timetable(date, image)
+        user.insert_timetable(date, image, text)
 
     if not dates:
         return
@@ -61,6 +62,18 @@ def normalize_value(value: str) -> str:
     for line in lines:
         for new_line in normalize_string(line):
             result.append(new_line)
+
+    return "\n".join(result)
+
+
+def get_text(date, group, events):
+    result = []
+    result.append(f"{date} {group}")
+    result.append(f"")
+    for event in events:
+        result.append(f"{event.start} - {event.end}")
+        result.append(f"{event.name}")
+        result.append(f"")
 
     return "\n".join(result)
 

@@ -20,7 +20,8 @@ def get_sheet(user: User):
     timetable = []
     weekdays = get_current_week_string_weekdays()
     days = get_current_week_string_days()
-    timetable = [(days[i], weekdays[i]) for i in range(len(days)) if user.get_date_timetable(days[i])]
+    timetable = [(days[i], weekdays[i]) for i in range(len(days)) if
+                 user.get_date_timetable(days[i]) and user.get_date_timetable(days[i]).image]
 
     keyboard = []
     for cur in timetable:
@@ -35,12 +36,12 @@ def get_sheet(user: User):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     User.safe_insert(update.effective_chat.id)
 
-    context.chat_data['sheet'] = 0
     sheet = get_sheet(User(telegram_id=update.effective_chat.id))
     if sheet.inline_keyboard:
         message = await update.message.reply_text(text="Расписание", reply_markup=sheet)
+
     else:
-        message = await update.message.reply_text(text="Расписания нет", reply_markup=sheet)
+        message = await update.message.reply_text(text="Расписания нет", reply_markup=None)
     return 0
 
 
@@ -50,12 +51,17 @@ async def send_timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     income = query.data
 
-    timetable = User(telegram_id=update.effective_chat.id).get_date_timetable(income)
+    user = User(telegram_id=update.effective_chat.id)
+    timetable = user.get_date_timetable(income)
 
-    await context.bot.send_photo(
-        chat_id=update.effective_chat.id,
-        photo=timetable.image
-    )
+    if user.settings.mode == "image":
+        await context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=timetable.image
+        )
+
+    if user.settings.mode == "text":
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=timetable.text)
 
     return ConversationHandler.END
 

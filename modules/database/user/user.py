@@ -208,8 +208,8 @@ class User:
         except TimetableNotFoundError:
             return None
 
-    def insert_timetable(self, date: str, image: bytes):
-        return Timetable.insert(user_id=self.id, date=date, image=image)
+    def insert_timetable(self, date: str, image: bytes, text: str):
+        return Timetable.insert(user_id=self.id, date=date, image=image, text=text)
 
     def delete(self):
         UserDeleter.delete(self._user)
@@ -220,8 +220,6 @@ class User:
 
     def delete_group(self, group: Group):
         UserDeleter.delete_group(user_id=self.id, group_id=group.id)
-
-
 
     def date_events(self, date: str) -> List[Event]:
         user_groups = self.groups
