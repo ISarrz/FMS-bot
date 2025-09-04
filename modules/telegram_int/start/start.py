@@ -132,10 +132,17 @@ async def class_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     income = query.data
     context.chat_data["class"] = income
     keyboard = []
-    keyboard.append([
-        InlineKeyboardButton(text="Группа A", callback_data="Группа А"),
-        InlineKeyboardButton(text="Группа Б", callback_data="Группа Б")
-    ])
+    if context.chat_data["grade"] == "10 класс":
+        keyboard.append([
+            InlineKeyboardButton(text="Группа A", callback_data="Группа А"),
+            InlineKeyboardButton(text="Группа Б", callback_data="Группа Б")
+        ])
+
+    if context.chat_data["grade"] == "11 класс":
+        keyboard.append([
+            InlineKeyboardButton(text="Группа IT", callback_data="Группа IT"),
+            InlineKeyboardButton(text="Группа Физмат", callback_data="Группа Физмат")
+        ])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -159,15 +166,13 @@ async def get_academic_group_reply_markup():
         InlineKeyboardButton(text="3", callback_data="3 группа"),
         InlineKeyboardButton(text="4", callback_data="4 группа"),
         InlineKeyboardButton(text="5", callback_data="5 группа"),
-        InlineKeyboardButton(text="6", callback_data="6 группа"),
     ])
     keyboard.append([
+        InlineKeyboardButton(text="6", callback_data="6 группа"),
         InlineKeyboardButton(text="7", callback_data="7 группа"),
         InlineKeyboardButton(text="8", callback_data="8 группа"),
         InlineKeyboardButton(text="9", callback_data="9 группа"),
         InlineKeyboardButton(text="10", callback_data="10 группа"),
-        InlineKeyboardButton(text="11", callback_data="11 группа"),
-        InlineKeyboardButton(text="12", callback_data="12 группа"),
     ])
 
     reply_markup = InlineKeyboardMarkup(keyboard)

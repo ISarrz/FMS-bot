@@ -96,9 +96,13 @@ class UserInserter:
         DB.insert_one(DB.users_groups_table_name, group_id=group_id, user_id=user_id)
 
     @staticmethod
+    def insert_notification(user: DbUser, text: str):
+        DB.insert_one(DB.users_notifications_table_name, user_id=user.id, value=text)
+
+    @staticmethod
     def insert_notifications(user: DbUser, notifications: List[str] | str):
         if isinstance(notifications, str):
-            DB.insert_one(DB.users_notifications_table_name, user_id=user.id, notifications=notifications)
+            DB.insert_one(DB.users_notifications_table_name, user_id=user.id, value=notifications)
 
         else:
             for notification in notifications:
@@ -185,6 +189,9 @@ class User:
             User.insert(telegram_id=telegram_id)
         except UserAlreadyExistsError:
             pass
+
+    def insert_notification(self, text: str):
+        UserInserter.insert_notification(user=self._user, text=text)
 
     @staticmethod
     def insert(telegram_id: int) -> User:

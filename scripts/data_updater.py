@@ -44,12 +44,12 @@ def data_update_run_once():
 
 
 def data_update_run_repeat():
-    schedule.every(2).minutes.do(run_data_update)
+    schedule.every(1).minutes.do(run_data_update)
     while True:
         schedule.run_pending()
         time.sleep(1)
 
 
 if __name__ == "__main__":
-    # data_update_run_once()
-    data_update_run_repeat()
+    data_update_run_once()
+    # data_update_run_repeat()

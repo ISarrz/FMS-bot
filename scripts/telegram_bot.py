@@ -5,6 +5,7 @@ from modules.telegram_int.start.start import ConversationHandler_start
 from modules.telegram_int.settings.settings import ConversationHandler_settings
 from modules.logger.logger import async_logger, logger
 from modules.config.paths import database_dump_path
+from io import BytesIO
 from telegram import (
     Update
 )
@@ -25,6 +26,22 @@ async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     with open(database_dump_path, "rb") as sql_file:
         await context.bot.send_document(chat_id=update.effective_chat.id, document=sql_file)
+
+
+@async_logger
+async def send_notification(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if  update.effective_chat.id != get_config_field('admin_chat_id'):
+        pass
+        await update.message.reply_text("Access denied")
+        return
+    # context.args содержит список аргументов после команды
+    if context.args:
+        text = " ".join(context.args)  # собираем строку
+        await update.message.reply_text(f"Вы написали: {text}")
+        for user in User.all():
+            user.insert_notification(text)
+    else:
+        await update.message.reply_text("❌ Вы не передали строку.\nПример: /echo Привет!")
 
 
 @async_logger
@@ -52,7 +69,12 @@ async def send_users_notifications(context: CallbackContext):
 async def send_logs(context: CallbackContext):
     chat_id = get_config_field("logs_chat_id")
     for log in Log.all():
-        await context.bot.send_message(chat_id=chat_id, text=log.value)
+        bio = BytesIO(log.value.encode("utf-8"))
+        bio.name = "log.txt"
+        if len(log.value) > 4096:
+            await context.bot.send_document(chat_id=chat_id, document=bio)
+        else:
+            await context.bot.send_message(chat_id=chat_id, text=log.value)
         log.delete()
 
 
@@ -69,6 +91,7 @@ def main():
     application.add_handler(CommandHandler('info', info_message))
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
     application.add_handler(CommandHandler('get_database', get_database))
+    application.add_handler(CommandHandler('send_notification', send_notification))
     application.add_handler(ConversationHandler_start, 1)
     application.add_handler(ConversationHandler_timetable, 2)
     application.add_handler(ConversationHandler_settings, 3)
