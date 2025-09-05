@@ -87,11 +87,11 @@ def get_image(date, group, events):
 
     content[0][1] = Text(value=group, font="Roboto Black", size=40, fill="white")
     lesson_number = 1
-    try:
-        if "ассамбл" in content[1][1].lower():
+
+    for event in events:
+        if "ассамбл" in event.name.lower():
             lesson_number = 0
-    except Exception as e:
-        pass
+            break
 
     for i in range(1, len(events) + 1):
         column = Column(outline_width=0)

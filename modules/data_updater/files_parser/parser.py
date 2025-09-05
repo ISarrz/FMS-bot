@@ -104,7 +104,7 @@ class Parser:
         name = value
         if "Ассам" in value:
             start = "08:00"
-            end = "08:25"
+            end = "08:30"
 
         event = CnEvent(name=name, group_id=-1, date=self.date, start=start, end=end, owner="", place="")
 

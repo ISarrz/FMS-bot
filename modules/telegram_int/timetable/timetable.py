@@ -1,4 +1,4 @@
-from modules.time import get_current_week_string_days, get_current_week_string_weekdays
+from modules.time import *
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -15,60 +15,179 @@ from telegram.ext import (
 from modules.database import User
 from modules.logger.logger import async_logger
 
+LEFT_ARROW = "←"
+RIGHT_ARROW = "→"
+BACK_ARROW = "↵"
+ADD = "+"
+EDIT = "edit"
+DELETE = "❌"
+SUBMIT = "✓︎"
+CANCEL = "⨯"
 
-def get_sheet(user: User):
-    timetables = []
+
+def get_previous_week_sheet(user: User):
+    weekdays = get_previous_week_string_weekdays()
+    days = get_previous_week_string_days()
+
+    return get_week_sheet(days, weekdays, user)
+
+
+def get_current_week_sheet(user: User):
     weekdays = get_current_week_string_weekdays()
     days = get_current_week_string_days()
+
+    return get_week_sheet(days, weekdays, user)
+
+
+def get_week_sheet(days, weekdays, user):
+    timetables = dict()
     keyboard = []
     for i in range(len(days)):
         timetable = user.get_date_timetable(days[i])
-        if not timetable or timetable is None:
+        if not timetable or not timetable.image or not timetable.text:
             continue
 
-        if not timetable.image or timetable.image is None:
-            continue
-
-        if not timetable.text or timetable.text is None:
-            continue
+        timetables[days[i]] = timetable
 
         keyboard.append([InlineKeyboardButton(text=weekdays[i], callback_data=days[i])])
 
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    if not keyboard:
+        return None
 
-    return reply_markup
+    return {
+        "keyboard": keyboard,
+        "timetables": timetables
+    }
+
+
+def get_next_week_sheet(user: User):
+    weekdays = get_next_week_string_weekdays()
+    days = get_next_week_string_days()
+
+    return get_week_sheet(days, weekdays, user)
+
+
+def get_sheets(user: User):
+    sheets = []
+    if get_previous_week_sheet(user):
+        sheet = get_previous_week_sheet(user)
+        sheet["text"] = "Предыдущая неделя"
+        sheets.append(sheet)
+
+    if get_current_week_sheet(user):
+        sheet = get_current_week_sheet(user)
+        sheet["text"] = "Текущая неделя"
+        sheets.append(sheet)
+
+    if get_next_week_sheet(user):
+        sheet = get_next_week_sheet(user)
+        sheet["text"] = "Следующая неделя"
+        sheets.append(sheet)
+
+    if len(sheets) > 1:
+        for sheet in sheets:
+            keyboard = sheet["keyboard"]
+            keyboard.append([
+                InlineKeyboardButton(text=LEFT_ARROW, callback_data=LEFT_ARROW),
+                InlineKeyboardButton(text=RIGHT_ARROW, callback_data=RIGHT_ARROW)
+            ])
+            sheet["keyboard"] = keyboard
+
+    for sheet in sheets:
+        keyboard = sheet["keyboard"]
+        sheet["reply_markup"] = InlineKeyboardMarkup(keyboard)
+
+    return sheets
 
 
 @async_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     User.safe_insert(update.effective_chat.id)
 
-    sheet = get_sheet(User(telegram_id=update.effective_chat.id))
-    if sheet.inline_keyboard:
-        message = await update.message.reply_text(text="Расписание", reply_markup=sheet)
+    context.user_data['timetable_sheet'] = 1
 
-    else:
-        message = await update.message.reply_text(text="Расписания нет", reply_markup=None)
-
+    await send_week(update, context)
     return 0
 
 
 @async_logger
-async def send_timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def week_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     income = query.data
 
+    if income == LEFT_ARROW:
+        context.user_data['timetable_sheet'] -= 1
+        sheets = context.user_data['timetable_sheets']
+        context.user_data['timetable_sheet'] += len(sheets)
+        context.user_data['timetable_sheet'] %= len(sheets)
+
+        await update_week(update, context)
+
+        return 0
+
+    elif income == RIGHT_ARROW:
+        context.user_data['timetable_sheet'] += 1
+        sheets = context.user_data['timetable_sheets']
+        context.user_data['timetable_sheet'] %= len(sheets)
+
+        await update_week(update, context)
+
+        return 0
+
+    else:
+        await send_timetable(update, context, income)
+        return ConversationHandler.END
+
+
+async def update_week(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['timetable_sheets'] = get_sheets(User(telegram_id=update.effective_chat.id))
+
+    if not context.user_data['timetable_sheets']:
+        message = await update.message.reply_text(text="Расписания нет", reply_markup=None)
+        return
+
+    sheets = context.user_data['timetable_sheets']
+    sheet = sheets[context.user_data['timetable_sheet']]
+
+    message = context.user_data['timetable_message']
+
+    await context.bot.edit_message_text(
+        chat_id=message.chat.id,
+        message_id=message.message_id,
+        text=sheet["text"],
+        reply_markup=sheet["reply_markup"]
+    )
+
+
+@async_logger
+async def send_week(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['timetable_sheets'] = get_sheets(User(telegram_id=update.effective_chat.id))
+
+    if not context.user_data['timetable_sheets']:
+        message = await update.message.reply_text(text="Расписания нет", reply_markup=None)
+        return
+
+    sheets = context.user_data['timetable_sheets']
+    sheet = sheets[context.user_data['timetable_sheet']]
+
+    message = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=sheet["text"],
+        reply_markup=sheet["reply_markup"]
+    )
+
+    context.user_data['timetable_message'] = message
+
+
+@async_logger
+async def send_timetable(update: Update, context: ContextTypes.DEFAULT_TYPE, date: str):
+    sheets = context.user_data['timetable_sheets']
+    sheet = sheets[context.user_data['timetable_sheet']]
+    timetable = sheet["timetables"][date]
     user = User(telegram_id=update.effective_chat.id)
-    timetable = user.get_date_timetable(income)
 
-    if timetable is None or timetable.text is None or timetable.image is None:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Ошибка расписания"
-        )
-
-    elif user.settings.mode == "image":
+    if user.settings.mode == "image":
         await context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=timetable.image
@@ -76,8 +195,6 @@ async def send_timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif user.settings.mode == "text":
         await context.bot.send_message(chat_id=update.effective_chat.id, text=timetable.text)
-
-    return ConversationHandler.END
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -88,8 +205,7 @@ ConversationHandler_timetable = ConversationHandler(
     entry_points=[CommandHandler('timetable', start)],
 
     states={
-        0: [CallbackQueryHandler(send_timetable)],
-
+        0: [CallbackQueryHandler(week_menu)]
     },
 
     fallbacks=[MessageHandler(filters.COMMAND, cancel)],
