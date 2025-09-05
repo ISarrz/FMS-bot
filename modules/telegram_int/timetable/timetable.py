@@ -103,8 +103,15 @@ def get_sheets(user: User):
 @async_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     User.safe_insert(update.effective_chat.id)
+    weeks = [sheet["text"] for sheet in  get_sheets(User(telegram_id=update.effective_chat.id))]
+    if "Текущая неделя" in weeks:
+        context.user_data['timetable_sheet'] = weeks.index("Текущая неделя")
 
-    context.user_data['timetable_sheet'] = 1
+    elif "Следующая неделя" in weeks:
+        context.user_data['timetable_sheet'] = weeks.index("Следующая неделя")
+
+    else:
+        context.user_data['timetable_sheet'] = 0
 
     await send_week(update, context)
     return 0
