@@ -6,6 +6,7 @@ from modules.telegram_int.settings.settings import ConversationHandler_settings
 from modules.logger.logger import async_logger, logger
 from modules.config.paths import database_dump_path
 from io import BytesIO
+from datetime import datetime
 from telegram import (
     Update
 )
@@ -30,7 +31,7 @@ async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @async_logger
 async def send_notification(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if  update.effective_chat.id != get_config_field('admin_chat_id'):
+    if update.effective_chat.id != get_config_field('admin_chat_id'):
         pass
         await update.message.reply_text("Access denied")
         return
@@ -63,6 +64,32 @@ async def send_users_notifications(context: CallbackContext):
                 pass
 
             notification.delete()
+
+
+@async_logger
+async def send_statistics(context: CallbackContext):
+    if not context.bot_data.get("sent_statistics"):
+        context.bot_data["sent_statistics"] = False
+
+    if datetime.now().hour == 13 and not context.bot_data["sent_statistics"]:
+        context.bot_data["sent_statistics"] = True
+        ct1 = 0
+        ct2 = 0
+        for user in User.all():
+            groups = user.groups
+            for group in groups:
+                if group.name == '11 класс':
+                    ct1 += 1
+
+                if group.name == '10 класс':
+                    ct2 += 1
+
+        chat_id = get_config_field('admin_chat_id')
+
+        await context.bot.send_message(chat_id=chat_id, text=f"11 класс - {ct1}; 10 класс - {ct2}")
+
+    if datetime.now().hour != 13:
+        context.bot_data["sent_statistics"] = False
 
 
 @async_logger
@@ -99,6 +126,7 @@ def main():
     job_deque = application.job_queue
     job_deque.run_repeating(send_users_notifications, 20)
     job_deque.run_repeating(send_logs, 20)
+    job_deque.run_repeating(send_statistics, 20)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 

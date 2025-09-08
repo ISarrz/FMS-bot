@@ -13,7 +13,7 @@ from telegram.ext import (
     filters
 )
 from modules.database import User
-from modules.logger.logger import async_logger
+from modules.logger.logger import async_logger, telegram_logger
 
 LEFT_ARROW = "←"
 RIGHT_ARROW = "→"
@@ -100,7 +100,7 @@ def get_sheets(user: User):
     return sheets
 
 
-@async_logger
+@telegram_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     User.safe_insert(update.effective_chat.id)
     weeks = [sheet["text"] for sheet in  get_sheets(User(telegram_id=update.effective_chat.id))]
@@ -117,7 +117,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return 0
 
 
-@async_logger
+@telegram_logger
 async def week_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -167,7 +167,7 @@ async def update_week(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-@async_logger
+@telegram_logger
 async def send_week(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['timetable_sheets'] = get_sheets(User(telegram_id=update.effective_chat.id))
 
@@ -187,7 +187,7 @@ async def send_week(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['timetable_message'] = message
 
 
-@async_logger
+@telegram_logger
 async def send_timetable(update: Update, context: ContextTypes.DEFAULT_TYPE, date: str):
     sheets = context.user_data['timetable_sheets']
     sheet = sheets[context.user_data['timetable_sheet']]
