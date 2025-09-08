@@ -71,7 +71,7 @@ async def send_statistics(context: CallbackContext):
     if not context.bot_data.get("sent_statistics"):
         context.bot_data["sent_statistics"] = False
 
-    if datetime.now().hour == 13 and not context.bot_data["sent_statistics"]:
+    if datetime.now().hour == 12 and not context.bot_data["sent_statistics"]:
         context.bot_data["sent_statistics"] = True
         ct1 = 0
         ct2 = 0
