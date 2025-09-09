@@ -88,7 +88,7 @@ async def send_statistics(context: CallbackContext):
 
         await context.bot.send_message(chat_id=chat_id, text=f"11 класс - {ct1}; 10 класс - {ct2}")
 
-    if datetime.now().hour != 13:
+    if datetime.now().hour != 12:
         context.bot_data["sent_statistics"] = False
 
 
