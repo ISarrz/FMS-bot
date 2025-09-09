@@ -20,10 +20,6 @@ class DB:
 
     logs_table_name = "logs"
 
-    _conn = sqlite3.connect(database_path, timeout=1, check_same_thread=False)
-    _conn.row_factory = sqlite3.Row
-    _cur = _conn.cursor()
-
     @staticmethod
     def save_backup():
         # Убедимся, что исходная база существует
@@ -50,11 +46,14 @@ class DB:
     def fetch_one(table_name: str, **kwargs):
         where_request = DB.create_where_request(**kwargs)
 
-        DB._cur.execute(f"""
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
                 SELECT * FROM {table_name} {where_request}
                 """, tuple(kwargs.values()))
 
-        response = DB._cur.fetchone()
+            response = cur.fetchone()
 
         return response
 
@@ -64,11 +63,14 @@ class DB:
 
         where_request = DB.create_where_request(**kwargs)
 
-        DB._cur.execute(f"""
-        SELECT * FROM {table_name} {where_request}
-        """, tuple(kwargs.values()))
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
+            SELECT * FROM {table_name} {where_request}
+            """, tuple(kwargs.values()))
 
-        response = DB._cur.fetchall()
+            response = cur.fetchall()
 
         return response
 
@@ -76,9 +78,11 @@ class DB:
     def delete_one(table_name: str, **kwargs):
         where_request = DB.create_where_request(**kwargs)
 
-        DB._cur.execute(f"""
-        DELETE FROM {table_name} {where_request}
-        """, tuple(kwargs.values()))
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+            cur.execute(f"""
+            DELETE FROM {table_name} {where_request}
+            """, tuple(kwargs.values()))
 
     @staticmethod
     def delete_many(table_name: str, **kwargs):
@@ -86,18 +90,22 @@ class DB:
 
         where_request = DB.create_where_request(**kwargs)
 
-        DB._cur.executemany(f"""
-        DELETE FROM {table_name} {where_request}
-        """, tuple(kwargs.values()))
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+            cur.executemany(f"""
+            DELETE FROM {table_name} {where_request}
+            """, tuple(kwargs.values()))
 
     @staticmethod
     def update_one(table_name: str, row_info: dict, new_values: dict):
         where_request = DB.create_where_request(**row_info)
         set_request = DB.create_set_request(**new_values)
-
-        DB._cur.execute(f"""
-        UPDATE {table_name} {set_request} {where_request}
-        """, tuple(new_values.values()) + tuple(row_info.values()))
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
+            UPDATE {table_name} {set_request} {where_request}
+            """, tuple(new_values.values()) + tuple(row_info.values()))
 
     @staticmethod
     def update_many(table_name: str, row_info: dict, new_values: dict):
@@ -105,10 +113,12 @@ class DB:
 
         where_request = DB.create_where_request(**row_info)
         set_request = DB.create_set_request(**new_values)
-
-        DB._cur.executemany(f"""
-        UPDATE {table_name} {set_request} {where_request}
-        """, tuple(new_values.values()) + tuple(row_info.values()))
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.executemany(f"""
+            UPDATE {table_name} {set_request} {where_request}
+            """, tuple(new_values.values()) + tuple(row_info.values()))
 
     @staticmethod
     def find_pattern(text, patterns):
@@ -122,11 +132,14 @@ class DB:
     def insert_one(table_name: str, **kwargs):
         insert_request = DB.create_insert_request(**kwargs)
         new_id = None
-        DB._cur.execute(f"""
-        INSERT INTO {table_name} {insert_request}
-        """, tuple(kwargs.values()))
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
+            INSERT INTO {table_name} {insert_request}
+            """, tuple(kwargs.values()))
 
-        new_id = DB._cur.lastrowid
+            new_id= cur.lastrowid
 
         return new_id
 
@@ -163,7 +176,10 @@ class DB:
 
     @staticmethod
     def _create_users_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS users
                         (
                             id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -172,7 +188,10 @@ class DB:
 
     @staticmethod
     def _create_users_groups_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_groups
                         (
                             id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -182,7 +201,10 @@ class DB:
 
     @staticmethod
     def _create_events_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS events
                         (
                             id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -197,7 +219,10 @@ class DB:
 
     @staticmethod
     def _create_groups_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS groups
                         (
                             id   INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -206,7 +231,10 @@ class DB:
 
     @staticmethod
     def _create_groups_relations_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS groups_relations
                         (
                             id        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -216,19 +244,24 @@ class DB:
 
     @staticmethod
     def _create_timetable_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS timetable
                         (
                             id      INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id INTEGER REFERENCES users,
                             date    TEXT,
-                            image   BLOB,
-                            text    TEXT
+                            image   BLOB
                         )""")
 
     @staticmethod
     def _create_logs_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS logs
                         (
                             id    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -237,18 +270,23 @@ class DB:
 
     @staticmethod
     def _create_users_settings_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_settings
                         (
                             id            INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id       parent_id INTEGER REFERENCES users,
-                            notifications INT,
-                            mode          TEXT
+                            notifications INT
                         )""")
 
     @staticmethod
     def _create_users_notifications_table():
-        DB._cur.execute("""
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_notifications
                         (
                             id      INTEGER PRIMARY KEY AUTOINCREMENT,
