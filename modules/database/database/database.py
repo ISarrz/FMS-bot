@@ -139,7 +139,7 @@ class DB:
             INSERT INTO {table_name} {insert_request}
             """, tuple(kwargs.values()))
 
-            new_id= cur.lastrowid
+            new_id = cur.lastrowid
 
         return new_id
 
@@ -163,15 +163,19 @@ class DB:
 
     @staticmethod
     def initialize():
-        DB._create_users_table()
-        DB._create_users_groups_table()
-        DB._create_events_table()
-        DB._create_groups_table()
-        DB._create_groups_relations_table()
-        DB._create_timetable_table()
-        DB._create_logs_table()
-        DB._create_users_notifications_table()
-        DB._create_users_settings_table()
+        try:
+            DB._create_users_table()
+            DB._create_users_groups_table()
+            DB._create_events_table()
+            DB._create_groups_table()
+            DB._create_groups_relations_table()
+            DB._create_timetable_table()
+            DB._create_logs_table()
+            DB._create_users_notifications_table()
+            DB._create_users_settings_table()
+        except Exception:
+            print("Database initialization failed")
+            return
         print("Database initialized.")
 
     @staticmethod
