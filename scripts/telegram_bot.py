@@ -11,6 +11,8 @@ from datetime import datetime
 from telegram import (
     Update
 )
+import sqlite3
+from modules.config.paths import database_path
 from telegram.ext import (
     ApplicationBuilder,
     CallbackContext,
@@ -24,7 +26,10 @@ async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="No Access")
         return
 
-    DB.save_backup()
+    with sqlite3.connect(database_path) as src_conn:
+        with sqlite3.connect(database_dump_path) as dest_conn:
+            src_conn.backup(dest_conn, pages=0, progress=None)
+
 
     with open(database_dump_path, "rb") as sql_file:
         await context.bot.send_document(chat_id=update.effective_chat.id, document=sql_file)
