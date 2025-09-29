@@ -1,5 +1,6 @@
 # from modules.database import *
 from modules.config import *
+from modules.config.paths import archive
 # from modules.telegram_int.timetable.timetable import ConversationHandler_timetable
 # from modules.telegram_int.start.start import ConversationHandler_start
 # from modules.telegram_int.settings.settings import ConversationHandler_settings
@@ -31,7 +32,7 @@ async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #         src_conn.backup(dest_conn, pages=0, progress=None)
 
 
-    with open(database_path, "rb") as sql_file:
+    with open(archive, "rb") as sql_file:
         await context.bot.send_document(chat_id=update.effective_chat.id, document=sql_file)
 
 

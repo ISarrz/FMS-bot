@@ -11,6 +11,7 @@ project_name = "FMS-bot"
 project_path = get_project_path(project_name)
 data_path = os.path.join(project_path, "data")
 database_path = os.path.join(data_path, "database.db")
+archive = os.path.join(data_path, "database.tar.gz")
 database_dumps_path = os.path.join(data_path, "database_dumps")
 database_dump_path = os.path.join(database_dumps_path, "database_dump.db")
 config_path = os.path.join(data_path, "config.json")
