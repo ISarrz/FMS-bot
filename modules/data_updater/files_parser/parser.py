@@ -98,8 +98,8 @@ class Parser:
             start = datetime.strptime(start.strip(), "%H.%M").strftime("%H:%M")
             end = datetime.strptime(end.strip(), "%H.%M").strftime("%H:%M")
         except Exception:
-            start = ""
-            end = ""
+            start = "00:00"
+            end = "00:00"
 
         name = value
         if "Ассам" in value:

@@ -233,7 +233,11 @@ class User:
         events = []
         for group in user_groups:
             events.extend(Event.by_group_and_date(group, date))
-
+        for event in events:
+            if not event.start:
+                event.start = "00:00"
+            if not event.end:
+                event.end = "00:00"
         events.sort(
             key=lambda event: (datetime.strptime(event.start, "%H:%M"), datetime.strptime(event.end, "%H:%M")))
 
