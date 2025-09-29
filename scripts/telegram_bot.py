@@ -1,8 +1,8 @@
 # from modules.database import *
 from modules.config import *
-from modules.telegram_int.timetable.timetable import ConversationHandler_timetable
-from modules.telegram_int.start.start import ConversationHandler_start
-from modules.telegram_int.settings.settings import ConversationHandler_settings
+# from modules.telegram_int.timetable.timetable import ConversationHandler_timetable
+# from modules.telegram_int.start.start import ConversationHandler_start
+# from modules.telegram_int.settings.settings import ConversationHandler_settings
 # from modules.logger.logger import async_logger, logger
 # from modules.config.paths import database_dump_path
 # from modules.statistics import statistics
@@ -143,11 +143,11 @@ def main():
     application.add_handler(CommandHandler('get_database', get_database))
     # application.add_handler(CommandHandler('send_notification', send_notification))
     # application.add_handler(CommandHandler('get_statistics', get_statistics))
-    application.add_handler(ConversationHandler_start, 1)
-    application.add_handler(ConversationHandler_timetable, 2)
-    application.add_handler(ConversationHandler_settings, 3)
+    # application.add_handler(ConversationHandler_start, 1)
+    # application.add_handler(ConversationHandler_timetable, 2)
+    # application.add_handler(ConversationHandler_settings, 3)
 
-    job_deque = application.job_queue
+    # job_deque = application.job_queue
     # job_deque.run_repeating(send_users_notifications, 20)
     # job_deque.run_repeating(send_logs, 20)
     # job_deque.run_repeating(day_statistics, 20)
