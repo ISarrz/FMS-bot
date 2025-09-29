@@ -21,20 +21,9 @@ from telegram.ext import (
     CommandHandler
 )
 
-
+@async_logger
 async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pass
-    # if update.effective_chat.id != get_config_field('admin_chat_id'):
-    #     await context.bot.send_message(chat_id=update.effective_chat.id, text="No Access")
-    #     return
-    #
-    # # with sqlite3.connect(database_path) as src_conn:
-    # #     with sqlite3.connect(database_dump_path) as dest_conn:
-    # #         src_conn.backup(dest_conn, pages=0, progress=None)
-    #
-    #
-    # with open(archive, "rb") as sql_file:
-    #     await context.bot.send_document(chat_id=update.effective_chat.id, document=sql_file)
 
 
 @async_logger
@@ -131,7 +120,6 @@ async def send_logs(context: CallbackContext):
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     await update.message.reply_text(text=str(chat_id))
-
 
 
 def main():
