@@ -257,6 +257,7 @@ class DB:
                             id      INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id INTEGER REFERENCES users,
                             date    TEXT,
+                            text    TEXT,
                             image   BLOB
                         )""")
 
