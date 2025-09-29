@@ -8,6 +8,7 @@ import httpx
 from modules.config.paths import downloaded_files_path, parsed_files_path
 from modules.config.config import get_config_field
 from modules.time import get_current_string_dates, get_current_week_string_days
+from modules.statistics.statistics import get_statistics_field, set_statistics_field
 
 
 class WebParser:

@@ -1,6 +1,7 @@
 from modules.config import get_telegram_message
 from modules.database import Group, User
 from modules.logger.logger import async_logger
+from modules.statistics.statistics import get_statistics_field, set_statistics_field
 
 from telegram.ext import (
     ConversationHandler,
@@ -19,6 +20,9 @@ from telegram import (
 
 @async_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    count = get_statistics_field("start_count")
+    set_statistics_field("start_count", count + 1)
+
     text = get_telegram_message("info")
 
     keyboard = []
@@ -94,7 +98,6 @@ async def get_elevens_reply_markup():
         InlineKeyboardButton(text="Χ", callback_data="Χ"),
         InlineKeyboardButton(text="Ψ", callback_data="Ψ"),
     ])
-
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 

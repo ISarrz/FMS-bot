@@ -14,6 +14,8 @@ from telegram.ext import (
 )
 from modules.database import User
 from modules.logger.logger import async_logger, telegram_logger
+from modules.statistics.statistics import get_statistics_field, set_statistics_field
+
 
 LEFT_ARROW = "←"
 RIGHT_ARROW = "→"
@@ -102,8 +104,11 @@ def get_sheets(user: User):
 
 @telegram_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    count = get_statistics_field("timetable_count")
+    set_statistics_field("timetable_count", count + 1)
+
     User.safe_insert(update.effective_chat.id)
-    weeks = [sheet["text"] for sheet in  get_sheets(User(telegram_id=update.effective_chat.id))]
+    weeks = [sheet["text"] for sheet in get_sheets(User(telegram_id=update.effective_chat.id))]
     if "Текущая неделя" in weeks:
         context.user_data['timetable_sheet'] = weeks.index("Текущая неделя")
 

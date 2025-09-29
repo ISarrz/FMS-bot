@@ -89,6 +89,9 @@ def get_image(date, group, events):
     lesson_number = 1
 
     for event in events:
+        if event.start == "00:00" and event.end == "00:00":
+            lesson_number = 0
+
         if "ассамбл" in event.name.lower():
             lesson_number = 0
             break

@@ -1,4 +1,6 @@
 from modules.time import get_current_week_string_days, get_current_week_string_weekdays
+from modules.statistics.statistics import get_statistics_field, set_statistics_field
+
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -34,8 +36,10 @@ def get_settings(user: User):
 
 @async_logger
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    User.safe_insert(update.effective_chat.id)
+    count = get_statistics_field("settings_count")
+    set_statistics_field("settings_count", count + 1)
 
+    User.safe_insert(update.effective_chat.id)
 
     sheet = get_settings(User(telegram_id=update.effective_chat.id))
 

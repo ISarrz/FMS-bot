@@ -18,6 +18,9 @@ config_path = os.path.join(data_path, "config.json")
 modules_path = os.path.join(project_path, "modules")
 scripts_path = os.path.join(project_path, "scripts")
 
+statistics_path = os.path.join(modules_path, "statistics")
+data_statistics_path = os.path.join(statistics_path, "data_statistics.json")
+
 downloaded_files_path = os.path.join(data_path, "downloaded_files")
 parsed_files_path = os.path.join(data_path, "parsed_files")
 
