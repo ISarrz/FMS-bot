@@ -21,10 +21,6 @@ from telegram.ext import (
     CommandHandler
 )
 
-@async_logger
-async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    pass
-
 
 @async_logger
 async def send_notification(update: Update, context: ContextTypes.DEFAULT_TYPE):
