@@ -30,6 +30,13 @@ def set_statistics_field(field, value):
 
 def update_statistics():
     data = get_statistics()
+    for group in Group.all():
+        if "группа" in group.name:
+            name = group.parent.name + " " + group.name
+        else:
+            name = group.name
+        if name in data.keys():
+            set_statistics_field(name, 0)
 
     for user in User.all():
         groups = user.groups
@@ -49,9 +56,9 @@ def update_statistics():
 
 def reset_statistics():
     data = {
-        "ФМШ":0,
-        "11 класс":0,
-        "10 класс":0,
+        "ФМШ": 0,
+        "11 класс": 0,
+        "10 класс": 0,
         "start_count": 0,
         "timetable_count": 0,
         "settings_count": 0,
@@ -70,8 +77,6 @@ def reset_statistics():
             name = group.name
 
         data[name] = 0
-
-
 
     for key in data.keys():
         set_statistics_field(key, data[key])
