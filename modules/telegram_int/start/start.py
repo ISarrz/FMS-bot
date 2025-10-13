@@ -169,13 +169,15 @@ async def get_academic_group_reply_markup():
         InlineKeyboardButton(text="3", callback_data="3 группа"),
         InlineKeyboardButton(text="4", callback_data="4 группа"),
         InlineKeyboardButton(text="5", callback_data="5 группа"),
+        InlineKeyboardButton(text="6", callback_data="6 группа"),
     ])
     keyboard.append([
-        InlineKeyboardButton(text="6", callback_data="6 группа"),
         InlineKeyboardButton(text="7", callback_data="7 группа"),
         InlineKeyboardButton(text="8", callback_data="8 группа"),
         InlineKeyboardButton(text="9", callback_data="9 группа"),
         InlineKeyboardButton(text="10", callback_data="10 группа"),
+        InlineKeyboardButton(text="11", callback_data="11 группа"),
+        InlineKeyboardButton(text="12", callback_data="12 группа"),
     ])
 
     reply_markup = InlineKeyboardMarkup(keyboard)

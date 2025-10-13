@@ -32,9 +32,9 @@ def update_statistics():
     data = get_statistics()
     for group in Group.all():
         if "группа" in group.name:
-            name = group.parent.name + " " + group.name
-        else:
-            name = group.name
+            continue
+
+        name = group.name
         if name in data.keys():
             set_statistics_field(name, 0)
 
@@ -43,9 +43,9 @@ def update_statistics():
         for group in groups:
             if group.name in data.keys():
                 if "группа" in group.name:
-                    name = group.parent.name + " " + group.name
-                else:
-                    name = group.name
+                    continue
+
+                name = group.name
 
                 count = get_statistics_field(name)
                 set_statistics_field(name, count + 1)
@@ -72,9 +72,8 @@ def reset_statistics():
 
     for group in ten_grade.children + eleven_grade.children:
         if "группа" in group.name:
-            name = group.parent.name + " " + group.name
-        else:
-            name = group.name
+            continue
+        name = group.name
 
         data[name] = 0
 
