@@ -34,6 +34,9 @@ class Parser:
 
     def parse_sheet(self):
         self.table = Table(self.sheet)
+        if not self.table.find_cell_by_regular_pattern(r"^\s{0,}время\s{0,}$"):
+            return
+
         self.time_col = self.table.find_cell_by_regular_pattern(r"^\s{0,}время\s{0,}$")[1]
 
         for row in range(self.table.height):

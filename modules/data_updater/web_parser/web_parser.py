@@ -85,8 +85,8 @@ class WebParser:
         current_year = datetime.now().year
         filename = match.group() + f".{current_year}.xlsx"
 
-        # if filename not in WebParser.get_pool_files():
-        #     return
+        if filename not in WebParser.get_pool_files():
+            return
 
         file_url = button.attrs.get("href")
         if not file_url:
