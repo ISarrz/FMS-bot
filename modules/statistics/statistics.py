@@ -74,39 +74,45 @@ class Statistic:
         Statistic.ten_grade_count = 0
 
     @staticmethod
-    def initialize_(self):
-        data = {
-            "users_count": 0,
-            "eleven_grade_count": 0,
-            "ten_grade_count": 0,
-            "timetable_count": 0,
-            "error_count": 0
-        }
+    def get_group_count(group_name: str):
+        return Statistic.get_field(group_name)
 
-        school = Group(name="ФМШ")
-        eleven_grade = Group(name="11 класс")
-        ten_grade = Group(name="10 класс")
+    @staticmethod
+    def set_group_count(group_name: str):
+        Statistic.set_field(group_name, group_name)
 
-        for group in ten_grade.children + eleven_grade.children:
+    @staticmethod
+    def contains(value:str):
+        data = dict()
+        with open(data_statistics_path) as f:
+            data = json.load(f)
+
+        if data.__contains__(value):
+            return True
+
+        return False
+
+    @staticmethod
+    def initialize_():
+        Statistic.set_field("users_count", 0)
+        Statistic.set_field( "eleven_grade_count", 0)
+        Statistic.set_field( "ten_grade_count", 0)
+        Statistic.set_field( "timetable_count", 0)
+        Statistic.set_field( "error_count", 0)
+
+        for group in Group(name="10 класс").children + Group(name="11 класс").children:
             if "группа" in group.name:
                 continue
+
             name = group.name
 
-            data[name] = 0
+            Statistic.set_field(name, 0)
 
-        for key in data.keys():
-            set_statistics_field(key, data[key])
+
 
     @staticmethod
     def update():
-        data = get_statistics()
-        for group in Group.all():
-            if "группа" in group.name:
-                continue
-
-            name = group.name
-            if name in data.keys():
-                set_statistics_field(name, 0)
+        Statistic.initialize_()
 
         for user in User.all():
             groups = user.groups
@@ -123,32 +129,7 @@ class Statistic:
         data = get_statistics()
         set_statistics_field("ФМШ", data["11 класс"] + data["10 класс"])
 
-    @staticmethod
-    def reset_statistic():
-        data = {
-            "ФМШ": 0,
-            "11 класс": 0,
-            "10 класс": 0,
-            "start_count": 0,
-            "timetable_count": 0,
-            "settings_count": 0,
-            "info_count": 0,
-            "sent_notifications_count": 0,
-            "error_count": 0,
-        }
-        school = Group(name="ФМШ")
-        eleven_grade = Group(name="11 класс")
-        ten_grade = Group(name="10 класс")
 
-        for group in ten_grade.children + eleven_grade.children:
-            if "группа" in group.name:
-                continue
-            name = group.name
-
-            data[name] = 0
-
-        for key in data.keys():
-            set_statistics_field(key, data[key])
 
 
 if __name__ == "__main__":
