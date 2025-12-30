@@ -6,6 +6,8 @@ from modules.telegram_int.start.sheets_generator import (get_ten_grade_sheet, ge
                                                          get_eleven_grade_academic_groups_sheet,
                                                          get_ten_grade_academic_groups_sheet)
 
+from modules.telegram_int.start.messages import send_grade_menu
+
 from telegram.ext import (
     ConversationHandler,
     CommandHandler,
@@ -21,26 +23,22 @@ from telegram import (
     InlineKeyboardMarkup,
 )
 
+GRADE_MENU_HANDLER = 0
+SCHOOL_CLASS_HANDLER = 1
+CLASS_GROUP_HANDLER = 2
+ACADEMIC_GROUP_HANDLER = 3
+END_HANDLER = 4
+
 
 @async_logger
 async def start(update: Update, context: CallbackContext):
     count = get_statistics_field("start_count")
     set_statistics_field("start_count", count + 1)
 
-    text = get_telegram_message("info")
-
-    keyboard = []
-    keyboard.append([InlineKeyboardButton(text="Далее", callback_data="1")])
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    message = await update.message.reply_text(text=text, reply_markup=reply_markup)
-    context.chat_data["start_message"] = message
+    await send_grade_menu(update, context)
     User.safe_insert(update.effective_chat.id)
 
-    # print(message.message_id)
-
-    return 0
+    return GRADE_MENU_HANDLER
 
 
 @async_logger
@@ -59,7 +57,7 @@ async def grade_menu(update: Update, context: CallbackContext):
         reply_markup=reply_markup
     )
 
-    return 1
+    return SCHOOL_CLASS_HANDLER
 
 
 @async_logger
@@ -82,7 +80,7 @@ async def school_class_menu(update: Update, context: CallbackContext):
         reply_markup=reply_markup
     )
 
-    return 2
+    return CLASS_GROUP_HANDLER
 
 
 @async_logger
@@ -115,7 +113,7 @@ async def class_group_menu(update: Update, context: CallbackContext):
         reply_markup=reply_markup
     )
 
-    return 3
+    return ACADEMIC_GROUP_HANDLER
 
 
 @async_logger
@@ -125,7 +123,6 @@ async def academic_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.answer()
     income = query.data
     context.chat_data["class_group"] = income
-
 
     reply_markup = None
     if income == "10 класс":
@@ -142,7 +139,7 @@ async def academic_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         reply_markup=reply_markup
     )
 
-    return 4
+    return END_HANDLER
 
 
 @async_logger

@@ -173,6 +173,7 @@ class DB:
             DB._create_logs_table()
             DB._create_users_notifications_table()
             DB._create_users_settings_table()
+            DB._create_constant_events_table()
         except Exception:
             print("Database initialization failed")
             return
@@ -215,6 +216,23 @@ class DB:
                             name     TEXT,
                             group_id INTEGER REFERENCES groups,
                             date     TEXT,
+                            start    TEXT,
+                            end      TEXT,
+                            owner    TEXT,
+                            place    TEXT
+                        )""")
+    @staticmethod
+    def _create_constant_events_table():
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
+                        CREATE TABLE IF NOT EXISTS events
+                        (
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name     TEXT,
+                            group_id INTEGER REFERENCES groups,
+                            weekday INTEGER,
                             start    TEXT,
                             end      TEXT,
                             owner    TEXT,

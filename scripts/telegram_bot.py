@@ -22,7 +22,7 @@ from telegram.ext import (
 )
 
 
-async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def get_database(update: Update, context: CallbackContext):
     pass
     # if update.effective_chat.id != get_config_field('admin_chat_id'):
     #     await context.bot.send_message(chat_id=update.effective_chat.id, text="No Access")
@@ -38,7 +38,7 @@ async def get_database(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 @async_logger
-async def send_notification(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def send_notification(update: Update, context: CallbackContext):
     count = statistics.get_statistics_field("sent_notifications_count")
     if update.effective_chat.id != get_config_field('admin_chat_id'):
         pass
@@ -54,14 +54,6 @@ async def send_notification(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Вы не передали строку.\nПример: /echo Привет!")
 
 
-@async_logger
-async def info_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    count = statistics.get_statistics_field("info_count")
-    statistics.set_statistics_field("info_count", count + 1)
-
-    text = get_telegram_message("info")
-
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
 
 
 @async_logger
@@ -140,7 +132,6 @@ def main():
     token = get_config_field('telegram_api_token')
     application = ApplicationBuilder().token(token).build()
 
-    application.add_handler(CommandHandler('info', info_message))
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
     application.add_handler(CommandHandler('get_database', get_database))
     application.add_handler(CommandHandler('send_notification', send_notification))
