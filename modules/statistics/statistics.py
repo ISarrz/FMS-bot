@@ -1,15 +1,12 @@
-from dataclasses import dataclass
-
-from telegram import Update
-from telegram.ext import CallbackContext
 from modules.database.group.group import Group
 from modules.config.paths import data_statistics_path
 from modules.database.user.user import User
 import json
-import os
 
 
 class Statistic:
+    flag = False
+
     @property
     def users_count(self):
         return self.get_field("users_count")
@@ -20,35 +17,35 @@ class Statistic:
 
     @property
     def eleven_grade_count(self):
-        return Statistic.get_field("eleven_grade_count")
+        return self.get_field("eleven_grade_count")
 
     @eleven_grade_count.setter
     def eleven_grade_count(self, value):
-        Statistic.set_field("eleven_grade_count", value)
+        self.set_field("eleven_grade_count", value)
 
     @property
     def ten_grade_count(self):
-        return Statistic.get_field("ten_grade_count")
+        return self.get_field("ten_grade_count")
 
     @ten_grade_count.setter
     def ten_grade_count(self, value):
-        Statistic.set_field("ten_grade_count", value)
+        self.set_field("ten_grade_count", value)
 
     @property
     def timetable_count(self):
-        return Statistic.get_field("timetable_count")
+        return self.get_field("timetable_count")
 
     @timetable_count.setter
     def timetable_count(self, value: int):
-        Statistic.set_field("timetable_count", value)
+        self.set_field("timetable_count", value)
 
     @property
-    def errors_count(self):
-        return Statistic.get_field("errors_count")
+    def errors_count(self) -> int:
+        return self.get_field("errors_count")
 
     @errors_count.setter
-    def errors_count(self, value):
-        Statistic.set_field("errors_count", value)
+    def errors_count(self, value: int):
+        self.set_field("errors_count", value)
 
     @staticmethod
     def get_field(field_name: str):
@@ -67,22 +64,31 @@ class Statistic:
         with open(data_statistics_path, "w") as f:
             json.dump(data, f, indent=4)
 
-    @staticmethod
-    def reset():
-        Statistic.users_count = 0
-        Statistic.eleven_grade_count = 0
-        Statistic.ten_grade_count = 0
+    def reset(self):
+        self.users_count = 0
+        self.eleven_grade_count = 0
+        self.ten_grade_count = 0
+        self.timetable_count = 0
+        self.errors_count = 0
+
+        for group in Group(name="10 класс").children + Group(name="11 класс").children:
+            if "группа" in group.name:
+                continue
+
+            name = group.name
+
+            self.set_field(name, 0)
+
+        for user in User.all():
+            for group in user.groups:
+                if self.contains(group.name) and "группа" not in group.name:
+                    count = self.get_field(group.name)
+                    self.set_field(group.name, count + 1)
+
+                    self.users_count += 1
 
     @staticmethod
-    def get_group_count(group_name: str):
-        return Statistic.get_field(group_name)
-
-    @staticmethod
-    def set_group_count(group_name: str):
-        Statistic.set_field(group_name, group_name)
-
-    @staticmethod
-    def contains(value:str):
+    def contains(value: str):
         data = dict()
         with open(data_statistics_path) as f:
             data = json.load(f)
@@ -92,47 +98,23 @@ class Statistic:
 
         return False
 
-    @staticmethod
-    def initialize_():
-        Statistic.set_field("users_count", 0)
-        Statistic.set_field( "eleven_grade_count", 0)
-        Statistic.set_field( "ten_grade_count", 0)
-        Statistic.set_field( "timetable_count", 0)
-        Statistic.set_field( "error_count", 0)
+    def __str__(self):
+        text = ""
+        text += f"Всего пользователей: {self.users_count}\n"
+        text += f"11 класс: {self.eleven_grade_count}\n"
+        text += f"10 класс: {self.ten_grade_count}\n"
 
         for group in Group(name="10 класс").children + Group(name="11 класс").children:
             if "группа" in group.name:
                 continue
 
-            name = group.name
+            text += f"{group.name}: {self.get_field(group.name)}\n"
 
-            Statistic.set_field(name, 0)
-
-
-
-    @staticmethod
-    def update():
-        Statistic.initialize_()
-
-        for user in User.all():
-            groups = user.groups
-            for group in groups:
-                if group.name in data.keys():
-                    if "группа" in group.name:
-                        continue
-
-                    name = group.name
-
-                    count = get_statistics_field(name)
-                    set_statistics_field(name, count + 1)
-
-        data = get_statistics()
-        set_statistics_field("ФМШ", data["11 класс"] + data["10 класс"])
+        text += f"Команда timetable: {self.timetable_count}\n"
+        text += f"Ошибки: {self.errors_count}\n"
 
 
-
+statistic = Statistic()
 
 if __name__ == "__main__":
-    Statistic.users_count = 1
-
-    # set_statistics_field("name", "123")
+    pass

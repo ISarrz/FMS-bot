@@ -1,7 +1,6 @@
 from modules.config import get_telegram_message
 from modules.database import Group, User
 from modules.logger.logger import async_logger
-from modules.statistics.statistics import get_statistics_field, set_statistics_field
 
 from telegram.ext import (
     ConversationHandler,

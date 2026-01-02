@@ -31,7 +31,8 @@ class UserSettingsFetcher:
             return [UserSettingsFetcher.constructor(user_info) for user_info in info]
 
         else:
-            return DbUserSettings(id=info["id"], user_id=info["user_id"], notifications=bool(info["notifications"]), mode=str(info["mode"]))
+            return DbUserSettings(id=info["id"], user_id=info["user_id"], notifications=bool(info["notifications"]),
+                                  mode=str(info["mode"]))
 
 
 class UserSettingsDeleter:
@@ -105,6 +106,16 @@ class UserSettings:
     @property
     def mode(self) -> str:
         return self._user_settings.mode
+
+    def switch_notifications_mode(self):
+        self.notifications = not self.notifications
+
+    def switch_timetable_mode(self):
+        if self.mode == "image":
+            self.mode = "text"
+
+        else:
+            self.mode = "image"
 
     @mode.setter
     def mode(self, mode: str):

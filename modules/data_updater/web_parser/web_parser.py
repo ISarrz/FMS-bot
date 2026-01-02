@@ -8,7 +8,6 @@ import httpx
 from modules.config.paths import downloaded_files_path, parsed_files_path
 from modules.config.config import get_config_field
 from modules.time import get_current_string_dates, get_current_week_string_days
-from modules.statistics.statistics import get_statistics_field, set_statistics_field
 
 
 class WebParser:
@@ -28,7 +27,7 @@ class WebParser:
     @staticmethod
     def get_pool_files():
         downloaded_files = os.listdir(downloaded_files_path) + os.listdir(parsed_files_path)
-        dates_pool = get_current_string_dates()
+        dates_pool = ['.'.join(date.split('.')[:2]) for date in get_current_string_dates()]
 
         pool_files = [date + ".xlsx" for date in dates_pool if date + ".xlsx" not in downloaded_files]
         return pool_files
@@ -82,11 +81,17 @@ class WebParser:
         if not match:
             return
 
-        current_year = datetime.now().year
-        filename = match.group() + f".{current_year}.xlsx"
+
+        filename = match.group() + f".xlsx"
 
         if filename not in WebParser.get_pool_files():
             return
+
+        for date in get_current_string_dates():
+            short_date = '.'.join(date.split('.')[:2])
+            if short_date == filename.replace(".xlsx", ""):
+                filename = f"{date}.xlsx"
+                break
 
         file_url = button.attrs.get("href")
         if not file_url:

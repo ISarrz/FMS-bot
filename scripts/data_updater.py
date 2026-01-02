@@ -7,6 +7,8 @@ from modules.data_updater.data_cleaner.data_cleaner import DataCleaner
 from modules.data_updater.files_parser.parser import Parser
 from modules.data_updater.painter import updater
 from modules.logger.logger import logger, async_logger
+from modules.database.database.database import DB
+from modules.database.log.log import Log
 
 
 @logger
@@ -44,17 +46,26 @@ def run_data_update():
     run_painter()
 
 
+def make_database_backup():
+    if DB.make_backup() == 0:
+        Log.insert("База данных сохранена")
+
+    else:
+        Log.insert("Ошибка в сохранении базы данных")
+
+
 def data_update_run_once():
     run_data_update()
 
 
 def data_update_run_repeat():
     schedule.every(1).minutes.do(run_data_update)
+    schedule.every().monday.do(make_database_backup)
     while True:
         schedule.run_pending()
         time.sleep(1)
 
 
 if __name__ == "__main__":
-    data_update_run_once()
-    # data_update_run_repeat()
+    # data_update_run_once()
+    data_update_run_repeat()

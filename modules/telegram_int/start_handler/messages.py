@@ -1,10 +1,12 @@
 from modules.config import get_telegram_message
 from modules.database import Group, User
 from modules.logger.logger import async_logger
-from modules.statistics.statistics import get_statistics_field, set_statistics_field
-from modules.telegram_int.start.sheets_generator import (get_ten_grade_sheet, get_eleven_grade_sheet,
-                                                         get_eleven_grade_academic_groups_sheet,
-                                                         get_ten_grade_academic_groups_sheet)
+
+from modules.telegram_int.start_handler.sheets_generator import (
+    get_ten_grade_sheet, get_eleven_grade_sheet,
+    get_eleven_grade_academic_groups_sheet,
+    get_ten_grade_academic_groups_sheet
+)
 
 from telegram.ext import (
     ConversationHandler,
@@ -23,10 +25,7 @@ from telegram import (
 
 
 @async_logger
-async def start(update: Update, context: CallbackContext):
-    count = get_statistics_field("start_count")
-    set_statistics_field("start_count", count + 1)
-
+async def send_start_menu(update: Update, context: CallbackContext):
     text = get_telegram_message("info")
 
     keyboard = []
@@ -36,15 +35,10 @@ async def start(update: Update, context: CallbackContext):
 
     message = await update.message.reply_text(text=text, reply_markup=reply_markup)
     context.chat_data["start_message"] = message
-    User.safe_insert(update.effective_chat.id)
-
-    # print(message.message_id)
-
-    return 0
 
 
 @async_logger
-async def grade_menu(update: Update, context: CallbackContext):
+async def update_grade_menu(update: Update, context: CallbackContext):
     message = context.chat_data["start_message"]
     keyboard = []
     keyboard.append([InlineKeyboardButton(text="11 класс", callback_data="11 класс")])
@@ -59,19 +53,16 @@ async def grade_menu(update: Update, context: CallbackContext):
         reply_markup=reply_markup
     )
 
-    return 1
-
 
 @async_logger
-async def school_class_menu(update: Update, context: CallbackContext):
+async def update_school_class_menu(update: Update, context: CallbackContext):
     message = context.chat_data["start_message"]
-    query = update.callback_query
-    await query.answer()
-    income = query.data
-    context.chat_data["grade"] = income
-    if income == "10 класс":
+    grade = context.chat_data["grade"]
+
+    if grade == "10 класс":
         reply_markup = await get_ten_grade_sheet()
-    if income == "11 класс":
+
+    if grade == "11 класс":
         reply_markup = await get_eleven_grade_sheet()
 
     text = get_telegram_message("class")
@@ -82,16 +73,11 @@ async def school_class_menu(update: Update, context: CallbackContext):
         reply_markup=reply_markup
     )
 
-    return 2
-
 
 @async_logger
-async def class_group_menu(update: Update, context: CallbackContext):
+async def update_class_group_menu(update: Update, context: CallbackContext):
     message = context.chat_data["start_message"]
-    query = update.callback_query
-    await query.answer()
-    income = query.data
-    context.chat_data["class"] = income
+
     keyboard = []
     if context.chat_data["grade"] == "10 класс":
         keyboard.append([
@@ -115,23 +101,16 @@ async def class_group_menu(update: Update, context: CallbackContext):
         reply_markup=reply_markup
     )
 
-    return 3
-
 
 @async_logger
-async def academic_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def update_academic_group_menu(update: Update, context: CallbackContext):
     message = context.chat_data["start_message"]
-    query = update.callback_query
-    await query.answer()
-    income = query.data
-    context.chat_data["class_group"] = income
-
 
     reply_markup = None
-    if income == "10 класс":
+    if context.chat_data["grade"] == "10 класс":
         reply_markup = await get_ten_grade_academic_groups_sheet()
 
-    elif income == "11 класс":
+    elif context.chat_data["grade"] == "11 класс":
         reply_markup = await  get_eleven_grade_academic_groups_sheet()
 
     text = get_telegram_message("academic_group")
@@ -142,16 +121,10 @@ async def academic_group_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         reply_markup=reply_markup
     )
 
-    return 4
-
 
 @async_logger
-async def end(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def update_end_menu(update: Update, context: CallbackContext):
     message = context.chat_data["start_message"]
-    query = update.callback_query
-    await query.answer()
-    income = query.data
-    context.chat_data["academic_group"] = income
 
     text = get_telegram_message("start_end")
     await context.bot.edit_message_text(
@@ -160,42 +133,3 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=text,
         reply_markup=None
     )
-
-    user = User(telegram_id=update.effective_chat.id)
-    grade = Group(name=context.chat_data["grade"])
-    school_class = Group(name=context.chat_data["class"])
-    class_group = Group(name=context.chat_data["class_group"], parent=school_class)
-    academic_group = Group(name=context.chat_data["academic_group"], parent=grade)
-    for group in user.groups:
-        user.delete_group(group)
-
-    for timetable in user.timetable:
-        timetable.delete()
-
-    user.insert_group(grade)
-    user.insert_group(school_class)
-    user.insert_group(class_group)
-    user.insert_group(academic_group)
-
-    return ConversationHandler.END
-
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    return ConversationHandler.END
-
-
-ConversationHandler_start = ConversationHandler(
-    entry_points=[CommandHandler('start', start)],
-
-    states={
-        0: [CallbackQueryHandler(grade_menu)],
-        1: [CallbackQueryHandler(school_class_menu)],
-        2: [CallbackQueryHandler(class_group_menu)],
-        3: [CallbackQueryHandler(academic_group_menu)],
-        4: [CallbackQueryHandler(end)],
-    },
-
-    fallbacks=[MessageHandler(filters.COMMAND, cancel)],
-    allow_reentry=True,
-    per_message=False
-)

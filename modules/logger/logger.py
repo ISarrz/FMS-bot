@@ -1,6 +1,6 @@
 from datetime import datetime
 from modules.database.log.log import Log
-from modules.statistics.statistics import get_statistics_field, set_statistics_field
+from modules.statistics.statistics import statistic
 import traceback
 
 from telegram.ext import (
@@ -16,8 +16,7 @@ def logger(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            count = get_statistics_field('error_count')
-            set_statistics_field('error_count', count + 1)
+            statistic.errors_count += 1
 
             now = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
             text = f'{now}: {func.__name__}\n{repr(e)}\n'
@@ -32,8 +31,7 @@ def async_logger(func):
         try:
             return await func(*args, **kwargs)
         except Exception as e:
-            count = get_statistics_field('error_count')
-            set_statistics_field('error_count', count + 1)
+            statistic.errors_count += 1
 
             now = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
             text = f'{now}: {func.__name__}\n{repr(e)}\n'
@@ -48,8 +46,7 @@ def telegram_logger(func):
         try:
             return await func(*args, **kwargs)
         except Exception as e:
-            count = get_statistics_field('error_count')
-            set_statistics_field('error_count', count + 1)
+            statistic.errors_count += 1
 
             now = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
             text = f'{now}: {func.__name__}\n{repr(e)}\n'
