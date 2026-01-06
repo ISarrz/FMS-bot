@@ -1,8 +1,6 @@
-from typing import List
-
-from modules.data_updater.painter.pixels import Pixels
-from modules.data_updater.painter.text import Text
-from modules.data_updater.painter.base_container import BaseContainer
+from modules.data_updater.painter.containers.pixels import Pixels
+from modules.data_updater.painter.containers.text import Text
+from modules.data_updater.painter.containers.base_container import BaseContainer
 
 
 class Container(BaseContainer):
@@ -283,7 +281,7 @@ class Container(BaseContainer):
 
 
 if __name__ == "__main__":
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 
     image = Image.new("RGB", (300, 200), color="white")
     text = Text(value="Hello, world!", left_top=(10, 10))

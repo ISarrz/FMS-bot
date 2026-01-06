@@ -15,5 +15,5 @@ def get_config_field(field):
 
 
 def get_telegram_message(name):
-    with open(os.path.join(telegram_messages_path, name + ".txt")) as f:
+    with open(os.path.join(telegram_messages_path, name + ".txt"), encoding="utf-8") as f:
         return f.read()

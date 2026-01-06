@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import List
-from modules.data_updater.painter.base_container import BaseContainer
-from modules.data_updater.painter.pixels import Pixels
-from modules.data_updater.painter.united_cell import UnitedCell
-from modules.data_updater.painter.cell import Cell
+from modules.data_updater.painter.containers.base_container import BaseContainer
+from modules.data_updater.painter.containers.pixels import Pixels
+from modules.data_updater.painter.containers.table.united_cell import UnitedCell
+from modules.data_updater.painter.containers.table.cell import Cell
 
 
 class Table(BaseContainer):
@@ -266,6 +266,14 @@ class Table(BaseContainer):
 
         self._unite_blocks(united_cell1, united_cell2)
         # self._update_pixels()
+
+    @property
+    def height(self):
+        return self._height
+
+    @property
+    def width(self):
+        return self._width
 
 
 if __name__ == "__main__":

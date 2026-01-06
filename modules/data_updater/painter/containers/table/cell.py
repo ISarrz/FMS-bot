@@ -1,5 +1,5 @@
 from __future__ import annotations
-from modules.data_updater.painter.container import Container
+from modules.data_updater.painter.containers.container import Container
 
 
 class Cell(Container):

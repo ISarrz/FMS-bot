@@ -99,7 +99,7 @@ class DB:
     @staticmethod
     def load_last_backup():
         backups_names = DB.get_backups_names()
-        backups_names.sort(key=lambda s: datetime.strptime(s, "%d-%m-%Y"))
+        backups_names.sort(key=lambda s: datetime.strptime(s.split(".")[0], "%d-%m-%Y"))
 
         return DB.load_backup(backups_names[-1])
 

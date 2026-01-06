@@ -27,7 +27,7 @@ class DbRegularEvent:
     id: int
     name: str
     group_id: int
-    weekday: str
+    weekday: int
     start: str
     end: str
     owner: str
@@ -50,7 +50,7 @@ class RegularEventUpdater:
         DB.update_one(DB.regular_events_table_name, dict(id=regular_event.id), {"group_id": group_id})
 
     @staticmethod
-    def update_weekday(regular_event: DbRegularEvent, weekday: str):
+    def update_weekday(regular_event: DbRegularEvent, weekday: int):
         DB.update_one(DB.regular_events_table_name, dict(id=regular_event.id), {"weekday": weekday})
 
     @staticmethod
@@ -84,6 +84,12 @@ class RegularEventFetcher:
         return RegularEventFetcher.constructor(DB.fetch_many(DB.regular_events_table_name))
 
     @staticmethod
+    def fetch_free_dates(regular_event_id: int):
+        response = DB.fetch_many(DB.free_dates_for_regular_events_table_name, regular_event_id=regular_event_id)
+
+        return [info["date"] for info in response]
+
+    @staticmethod
     def constructor(info):
         if not info:
             return None
@@ -110,7 +116,7 @@ class RegularEventFetcher:
 
 class RegularEventInserter:
     @staticmethod
-    def insert(name: str, group_id: int, weekday: str, start: str, end: str, owner: str, place: str):
+    def insert(name: str, group_id: int, weekday: int, start: str, end: str, owner: str, place: str):
         return DB.insert_one(DB.regular_events_table_name,
                              name=name,
                              group_id=group_id,
@@ -127,7 +133,7 @@ class RegularEvent:
 
     def __init__(self, *args, **kwargs):
 
-        fields = ["id", "name", "group_id", "weekday", "start", "end", "owner", "place", "db_event"]
+        fields = ["id", "name", "group_id", "weekday", "start", "end", "owner", "place", "db_regular_event"]
 
         for field in kwargs.keys():
             if field not in fields:
@@ -145,11 +151,16 @@ class RegularEvent:
         if not self._regular_event:
             raise RegularEventNotFoundError
 
-    def add_events(self):
+    def generate_events(self):
+        current_dates = get_current_string_dates()
+        self._generated_events = [event for event in self._generated_events if event.date in current_dates]
+        used_dates = [event.date for event in self._generated_events]
+        free_dates = self.free_dates
         for date in get_current_string_dates():
-            dt = datetime.strptime(date, "%d-%m-%Y")
-            weekday = dt.weekday()
-            if weekday != self.weekday:
+            if date in used_dates or date in free_dates:
+                continue
+
+            if datetime.strptime(date, "%d-%m-%Y").weekday() != self.weekday:
                 continue
 
             event = Event.insert(name=self.name,
@@ -173,6 +184,10 @@ class RegularEvent:
     @property
     def name(self) -> str:
         return self._regular_event.name
+
+    @property
+    def free_dates(self):
+        return RegularEventFetcher.fetch_free_dates(self.id)
 
     @name.setter
     def name(self, name: str):
@@ -203,11 +218,11 @@ class RegularEvent:
         self._regular_event.group_id = group_id
 
     @property
-    def weekday(self) -> str:
+    def weekday(self) -> int:
         return self._regular_event.weekday
 
     @weekday.setter
-    def weekday(self, weekday: str):
+    def weekday(self, weekday: int):
         RegularEventUpdater.update_weekday(self._regular_event, weekday)
         self._regular_event.weekday = weekday
 
@@ -254,7 +269,7 @@ class RegularEvent:
             event.delete()
 
     @staticmethod
-    def insert(name: str, group_id: int, weekday: str, start: str, end: str, owner: str, place: str):
+    def insert(name: str, group_id: int, weekday: int, start: str, end: str, owner: str, place: str):
         try:
             RegularEvent(name=name, group_id=group_id, weekday=weekday, start=start, end=end, owner=owner, place=place)
             raise RegularEventAlreadyExistsError

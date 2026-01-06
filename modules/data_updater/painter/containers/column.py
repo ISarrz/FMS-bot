@@ -1,10 +1,10 @@
 from typing import List
 
-from PIL import Image, ImageDraw, ImageFont
-from modules.data_updater.painter.pixels import Pixels
-from modules.data_updater.painter.base_container import BaseContainer
-from modules.data_updater.painter.container import Container
-from modules.data_updater.painter.text import Text
+from PIL import Image, ImageDraw
+from modules.data_updater.painter.containers.pixels import Pixels
+from modules.data_updater.painter.containers.base_container import BaseContainer
+from modules.data_updater.painter.containers.container import Container
+from modules.data_updater.painter.containers.text import Text
 
 
 class Column(BaseContainer):

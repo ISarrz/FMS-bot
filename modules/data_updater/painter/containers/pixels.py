@@ -1,9 +1,6 @@
 from __future__ import annotations
-import dataclasses
 
-from sympy import false
-
-from modules.data_updater.painter.simple_container import SimpleContainer
+from modules.data_updater.painter.containers.simple_container import SimpleContainer
 
 
 class Pixels:

@@ -1,6 +1,5 @@
 from __future__ import annotations
-from typing import List
-from modules.data_updater.painter.cell import Cell
+from modules.data_updater.painter.containers.table.cell import Cell
 
 
 class UnitedCell(Cell):
