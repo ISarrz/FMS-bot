@@ -74,10 +74,10 @@ class DB:
     def get_backups_names():
         cmd = ["curl",
                "--request", "GET",
-               "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
+               "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
                "--aws-sigv4", "aws:amz:ru-central1:s3",
                "--verbose",
-               f"{get_config_field("yandex_bucket_address")}?list-type=2"
+               f"{get_config_field('yandex_bucket_address')}?list-type=2"
                ]
 
         result = subprocess.run(
