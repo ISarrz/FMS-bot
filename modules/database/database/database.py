@@ -55,10 +55,10 @@ class DB:
     def load_backup(backup_name: str):
         cmd = ["curl",
                "--request", "GET",
-               "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
+               "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
                "--aws-sigv4", "aws:amz:ru-central1:s3",
                "--verbose",
-               f"{get_config_field("yandex_bucket_address")}/{backup_name}"
+               f"{get_config_field('yandex_bucket_address')}/{backup_name}"
                ]
 
         with open(database_path, "wb") as f:
