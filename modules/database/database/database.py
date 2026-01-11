@@ -1,8 +1,15 @@
 import sqlite3
-
-from modules.config.paths import database_path, database_dump_path
+import subprocess
+from modules.config.paths import database_path
+from modules.config.config import get_config_field
+from datetime import datetime
+import xml.etree.ElementTree as ET
+from modules.config.paths import database_path
+from modules.config.config import get_config_field
 import re
 import os
+from datetime import datetime
+import subprocess
 
 
 class DB:
@@ -15,32 +22,87 @@ class DB:
     groups_relations_table_name = "groups_relations"
 
     events_table_name = "events"
+    regular_events_table_name = "regular_events"
+    events_from_regular_events_table_name = "events_from_regular_events"
+    free_dates_for_regular_events_table_name = "free_dates_for_regular_events"
 
     timetable_table_name = "timetable"
 
     logs_table_name = "logs"
 
     @staticmethod
-    def save_backup():
-        # Убедимся, что исходная база существует
-        if not os.path.exists(database_path):
-            raise FileNotFoundError(f"Source database not found")
+    def make_backup():
+        cur_date = datetime.now().strftime("%d-%m-%Y")
+        cmd = [
+            "curl",
+            "--request", "PUT",
+            "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
+            "--aws-sigv4", "aws:amz:ru-central1:s3",
+            "--upload-file", database_path,
+            "--verbose",
+            f"{get_config_field("yandex_bucket_address")}/{cur_date}.db",
+        ]
 
-        with sqlite3.connect(database_path) as src_conn:
-            with sqlite3.connect(database_dump_path) as dest_conn:
-                src_conn.backup(dest_conn, pages=0, progress=None)
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+        )
+
+        return result.returncode
 
     @staticmethod
-    def load_backup():
-        if not os.path.exists(database_dump_path):
-            raise FileNotFoundError(f"Source dump database not found")
+    def load_backup(backup_name: str):
+        cmd = ["curl",
+               "--request", "GET",
+               "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
+               "--aws-sigv4", "aws:amz:ru-central1:s3",
+               "--verbose",
+               f"{get_config_field("yandex_bucket_address")}/{backup_name}"
+               ]
 
-        if os.path.exists(database_path):
-            os.remove(database_path)
+        with open(database_path, "wb") as f:
+            result = subprocess.run(
+                cmd,
+                stderr=subprocess.PIPE,
+                stdout=f
+            )
 
-        with sqlite3.connect(database_dump_path) as src_conn:
-            with sqlite3.connect(database_path) as dest_conn:
-                src_conn.backup(dest_conn, pages=0, progress=None)
+        return result.returncode
+
+    @staticmethod
+    def get_backups_names():
+        cmd = ["curl",
+               "--request", "GET",
+               "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
+               "--aws-sigv4", "aws:amz:ru-central1:s3",
+               "--verbose",
+               f"{get_config_field("yandex_bucket_address")}?list-type=2"
+               ]
+
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+
+        xml_data = result.stdout
+        root = ET.fromstring(xml_data)
+        ns = {"s3": "http://s3.amazonaws.com/doc/2006-03-01/"}
+        files = [
+            elem.text
+            for elem in root.findall(".//s3:Contents/s3:Key", ns)
+        ]
+
+        return files
+
+    @staticmethod
+    def load_last_backup():
+        backups_names = DB.get_backups_names()
+        backups_names.sort(key=lambda s: datetime.strptime(s.split(".")[0], "%d-%m-%Y"))
+
+        return DB.load_backup(backups_names[-1])
 
     @staticmethod
     def fetch_one(table_name: str, **kwargs):
@@ -167,15 +229,20 @@ class DB:
             DB._create_users_table()
             DB._create_users_groups_table()
             DB._create_events_table()
+            DB._create_regular_events_table()
             DB._create_groups_table()
             DB._create_groups_relations_table()
             DB._create_timetable_table()
             DB._create_logs_table()
             DB._create_users_notifications_table()
             DB._create_users_settings_table()
+            DB._create_free_dates_for_regular_events_table()
+            DB._create_events_from_regular_events_tabe()
+
         except Exception:
             print("Database initialization failed")
             return
+
         print("Database initialized.")
 
     @staticmethod
@@ -211,10 +278,40 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS events
                         (
+                            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name          TEXT,
+                            group_id      INTEGER REFERENCES groups,
+                            date          TEXT,
+                            start TEXT,
+                            end           TEXT,
+                            owner         TEXT,
+                            place         TEXT
+                        )""")
+    @staticmethod
+    def _create_events_from_regular_events_tabe():
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
+                        CREATE TABLE IF NOT EXISTS events_from_regular_events
+                        (
+                            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                            event_id         INTEGER REFERENCES events,
+                            regular_event_id INTEGER REFERENCES regular_events
+                        )""")
+
+    @staticmethod
+    def _create_regular_events_table():
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
+                        CREATE TABLE IF NOT EXISTS regular_events
+                        (
                             id       INTEGER PRIMARY KEY AUTOINCREMENT,
                             name     TEXT,
                             group_id INTEGER REFERENCES groups,
-                            date     TEXT,
+                            weekday  INTEGER,
                             start    TEXT,
                             end      TEXT,
                             owner    TEXT,
@@ -283,7 +380,8 @@ class DB:
                         (
                             id            INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id       parent_id INTEGER REFERENCES users,
-                            notifications INT
+                            notifications INT,
+                            mode          TEXT
                         )""")
 
     @staticmethod
@@ -298,9 +396,19 @@ class DB:
                             user_id parent_id INTEGER REFERENCES users,
                             value   TEXT
                         )""")
+    @staticmethod
+    def _create_free_dates_for_regular_events_table():
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
+                        CREATE TABLE IF NOT EXISTS free_dates_for_regular_events
+                        (
+                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                            regular_event_id parent_id INTEGER REFERENCES regular_events,
+                            date TEXT 
+                        )""")
 
 
 if __name__ == "__main__":
-    DB.save_backup()
-    DB.load_backup()
     pass
