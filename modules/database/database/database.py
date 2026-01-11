@@ -48,7 +48,7 @@ class DB:
             capture_output=True,
             text=True,
         )
-
+        print(result.stderr)
         return result.returncode
 
     @staticmethod
