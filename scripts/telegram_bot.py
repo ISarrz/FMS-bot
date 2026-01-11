@@ -93,7 +93,7 @@ async def send_logs(context: CallbackContext):
         log.delete()
 
 
-async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def get_chat_id(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     await update.message.reply_text(text=str(chat_id))
 
@@ -111,10 +111,10 @@ def main():
     application.add_handler(ConversationHandler_settings, 3)
 
     job_deque = application.job_queue
-    job_deque.run_repeating(send_users_notifications, 20)
+    job_deque.run_repeating(send_users_notifications, 60)
     job_deque.run_repeating(send_logs, 20)
-    job_deque.run_repeating(day_statistics, 20)
-
+    job_deque.run_repeating(day_statistics, 60)
+    #
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

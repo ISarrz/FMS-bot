@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from modules.database.database.database import DB
 from modules.database.group.group import Group
-from modules.database.event.event import Event
+from modules.database.event.event import Event, EventAlreadyExistsError
 from modules.time.dates import get_current_string_dates
 
 
@@ -84,6 +84,14 @@ class RegularEventFetcher:
         return RegularEventFetcher.constructor(DB.fetch_many(DB.regular_events_table_name))
 
     @staticmethod
+    def fetch_events_ids_from_regular_event(regular_event_id: int) -> List[Event]:
+        response = []
+        x = DB.fetch_many(DB.events_from_regular_events_table_name, regular_event_id=regular_event_id)
+        for event in x:
+            response.append(event["id"])
+        return response
+
+    @staticmethod
     def fetch_free_dates(regular_event_id: int):
         response = DB.fetch_many(DB.free_dates_for_regular_events_table_name, regular_event_id=regular_event_id)
 
@@ -129,7 +137,6 @@ class RegularEventInserter:
 
 class RegularEvent:
     _regular_event: DbRegularEvent
-    _generated_events: List[Event]
 
     def __init__(self, *args, **kwargs):
 
@@ -152,32 +159,39 @@ class RegularEvent:
             raise RegularEventNotFoundError
 
     def generate_events(self):
-        current_dates = get_current_string_dates()
-        self._generated_events = [event for event in self._generated_events if event.date in current_dates]
-        used_dates = [event.date for event in self._generated_events]
+        used_dates = [event.date for event in self.generated_events]
         free_dates = self.free_dates
         for date in get_current_string_dates():
             if date in used_dates or date in free_dates:
                 continue
 
-            if datetime.strptime(date, "%d-%m-%Y").weekday() != self.weekday:
+            if datetime.strptime(date, "%d.%m.%Y").weekday() != self.weekday:
                 continue
+            try:
+                name = f"{self.name}\n{self.owner}\n{self.place}"
+                event = Event.insert(name=name,
+                                     group_id=self.group_id,
+                                     date=date,
+                                     start=self.start,
+                                     end=self.end,
+                                     owner=self.owner,
+                                     place=self.place)
+                DB.insert_one(DB.events_from_regular_events_table_name, event_id=event.id, regular_event_id=self.id)
 
-            event = Event.insert(name=self.name,
-                                 group_id=self.group_id,
-                                 date=date,
-                                 start=self.start,
-                                 end=self.end,
-                                 owner=self.owner,
-                                 place=self.place)
 
-            self._generated_events.append(event)
+            except EventAlreadyExistsError:
+                pass
+
+    @property
+    def generated_events(self):
+        events_ids = RegularEventFetcher.fetch_events_ids_from_regular_event(self._regular_event.id)
+        return [Event(id=ind) for ind in events_ids]
 
     @staticmethod
     def all():
         regular_events = RegularEventFetcher.fetch_all()
         if regular_events:
-            return [RegularEvent(db_event=event_info) for event_info in regular_events]
+            return [RegularEvent(db_regular_event=event_info) for event_info in regular_events]
 
         return []
 
@@ -265,7 +279,7 @@ class RegularEvent:
     def delete(self):
         RegularEventDeleter.delete(self._regular_event)
 
-        for event in self._generated_events:
+        for event in self.generated_events:
             event.delete()
 
     @staticmethod

@@ -15,6 +15,7 @@ from modules.telegram_int.start_handler.messages import (
     update_academic_group_menu,
     update_end_menu
 )
+from modules.telegram_int.constants import get_last_message_id, clear_last_message
 
 from telegram.ext import (
     ConversationHandler,
@@ -40,6 +41,8 @@ END_HANDLER = 4
 
 @async_logger
 async def start_menu_handler(update: Update, context: CallbackContext):
+    await clear_last_message(update,context)
+
     await send_start_menu(update, context)
     User.safe_insert(update.effective_chat.id)
 
@@ -78,7 +81,7 @@ async def class_group_menu_handler(update: Update, context: CallbackContext):
 
 
 @async_logger
-async def academic_group_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def academic_group_menu_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
     class_group = query.data
@@ -90,7 +93,7 @@ async def academic_group_menu_handler(update: Update, context: ContextTypes.DEFA
 
 
 @async_logger
-async def end_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def end_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
     academic_group = query.data
@@ -117,10 +120,20 @@ async def end_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     update_user(user)
 
+    for notification in user.notifications:
+        try:
+            if user.settings.notifications:
+                await context.bot.send_message(chat_id=user.telegram_id, text=notification.value)
+
+        except Exception:
+            pass
+
+        notification.delete()
+
     return ConversationHandler.END
 
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cancel(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 

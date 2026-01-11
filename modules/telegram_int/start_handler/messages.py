@@ -1,7 +1,7 @@
 from modules.config import get_telegram_message
 from modules.database import Group, User
 from modules.logger.logger import async_logger
-
+from modules.telegram_int.constants import set_last_message_id, clear_last_message
 from modules.telegram_int.start_handler.sheets_generator import (
     get_ten_grade_sheet, get_eleven_grade_sheet,
     get_eleven_grade_academic_groups_sheet,
@@ -26,6 +26,7 @@ from telegram import (
 
 @async_logger
 async def send_start_menu(update: Update, context: CallbackContext):
+    await clear_last_message(update,context)
     text = get_telegram_message("info")
 
     keyboard = []
@@ -35,6 +36,7 @@ async def send_start_menu(update: Update, context: CallbackContext):
 
     message = await update.message.reply_text(text=text, reply_markup=reply_markup)
     context.chat_data["start_message"] = message
+    set_last_message_id( update.effective_chat.id,message.message_id)
 
 
 @async_logger

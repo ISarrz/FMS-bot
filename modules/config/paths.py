@@ -34,5 +34,6 @@ render_path = os.path.join(images_updater_path, "render")
 templates_path = os.path.join(render_path, "templates")
 
 telegram_path = os.path.join(modules_path, "telegram_int")
+telegram_data_path = os.path.join(modules_path, "data.json")
 telegram_messages_path = os.path.join(telegram_path, "messages")
 telegram_info_message_path = os.path.join(telegram_messages_path, "info.txt")

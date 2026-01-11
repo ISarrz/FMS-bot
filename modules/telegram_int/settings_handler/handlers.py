@@ -15,6 +15,7 @@ from telegram.ext import (
 )
 from modules.database import User
 from modules.logger.logger import async_logger
+from modules.telegram_int.constants import set_last_message_id, get_last_message_id
 
 SETTINGS_CHOICE_HANDLER = 0
 GROUPS_MENU_CHOICE_HANDLER = 1
@@ -24,7 +25,9 @@ from modules.telegram_int.settings_handler.messages import *
 
 
 @async_logger
-async def start_settings_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start_settings_handler(update: Update, context: CallbackContext):
+    await clear_last_message(update, context)
+
     User.safe_insert(update.effective_chat.id)
 
     await send_settings_menu(update, context)
@@ -33,7 +36,7 @@ async def start_settings_handler(update: Update, context: ContextTypes.DEFAULT_T
 
 
 @async_logger
-async def settings_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def settings_menu_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
     income = query.data
@@ -61,7 +64,7 @@ async def settings_menu_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 @async_logger
-async def groups_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def groups_menu_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
     income = query.data
@@ -101,6 +104,7 @@ async def groups_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     else:
         user = User(telegram_id=update.effective_chat.id)
+
         if new_group.id in [ug.id for ug in user.groups]:
             user.delete_group(new_group)
 
@@ -115,13 +119,21 @@ async def groups_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
                 user.delete_group(cur_group)
 
         else:
-            user.insert_group(new_group)
+            groups_ids = [group.id for group in user.groups]
+            for group in new_group.relation_path:
+                if group.id in groups_ids:
+                    continue
+
+                user.insert_group(group)
+
+        for timetable in user.timetable:
+            timetable.delete()
 
     await update_groups_menu(update, context)
     return GROUPS_MENU_CHOICE_HANDLER
 
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cancel(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 

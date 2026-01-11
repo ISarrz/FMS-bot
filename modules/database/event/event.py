@@ -48,6 +48,7 @@ class EventDeleter:
     def delete(event: DbEvent):
         from modules.database.user.user import User
         DB.delete_one(DB.events_table_name, id=event.id)
+        DB.delete_one(DB.events_from_regular_events_table_name, event_id=event.id)
 
         group = event.group_id
         try:
@@ -279,3 +280,12 @@ class Event:
                                             place=place)
 
             return Event(id=event_id)
+
+    def __lt__(self, other):
+        row1 = (datetime.strptime(self.start, "%H:%M"), datetime.strptime(self.end, "%H:%M"))
+        row2 = (datetime.strptime(other.start, "%H:%M"), datetime.strptime(other.end, "%H:%M"))
+
+        return row1 < row2
+
+
+

@@ -43,7 +43,7 @@ def get_groups_menu_sheets(update: Update, context: CallbackContext):
     for group in main_group.children:
         text = group.name
         if group.id in [ug.id for ug in user.groups]:
-            text += f" {TICK}"
+            text = f"{TICK} " + text
 
         if not sheets or len(sheets[-1]) >= MAX_LENGTH:
             sheets.append([])

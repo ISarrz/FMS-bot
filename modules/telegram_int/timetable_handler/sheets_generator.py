@@ -1,20 +1,22 @@
-from modules.time import *
+from modules.time import (
+    get_current_week_string_days,
+    get_current_week_string_weekdays,
+    get_previous_week_string_days,
+    get_previous_week_string_weekdays,
+    get_next_week_string_days,
+    get_next_week_string_weekdays,
+)
 from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
 from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters
+    ContextTypes
 )
 from modules.database import User
-from modules.logger.logger import async_logger, telegram_logger
-from modules.telegram_int.constants import *
+from modules.telegram_int.constants import LEFT_ARROW, RIGHT_ARROW, BACK_ARROW
+
 
 def get_previous_week_sheet(user: User):
     weekdays = get_previous_week_string_weekdays()
@@ -30,26 +32,6 @@ def get_current_week_sheet(user: User):
     return get_week_sheet(days, weekdays, user)
 
 
-def get_week_sheet(days, weekdays, user):
-    timetables = dict()
-    keyboard = []
-    for i in range(len(days)):
-        timetable = user.get_date_timetable(days[i])
-        if not timetable or not timetable.image or not timetable.text:
-            continue
-
-        timetables[days[i]] = timetable
-
-        keyboard.append([InlineKeyboardButton(text=weekdays[i], callback_data=days[i])])
-
-    if not keyboard:
-        return None
-
-    return {
-        "keyboard": keyboard,
-        "timetables": timetables
-    }
-
 def get_next_week_sheet(user: User):
     weekdays = get_next_week_string_weekdays()
     days = get_next_week_string_days()
@@ -57,34 +39,64 @@ def get_next_week_sheet(user: User):
     return get_week_sheet(days, weekdays, user)
 
 
+def get_week_sheet(days, weekdays, user: User):
+    keyboard = []
+
+    for i in range(len(days)):
+        if user.get_date_timetable(days[i]):
+            keyboard.append([InlineKeyboardButton(text=weekdays[i], callback_data=days[i])])
+
+    return keyboard if keyboard else None
+
+
 def get_weeks_sheets(user: User):
     sheets = []
-    if get_previous_week_sheet(user):
-        sheet = get_previous_week_sheet(user)
-        sheet["title"] = "Предыдущая неделя"
-        sheets.append(sheet)
 
-    if get_current_week_sheet(user):
-        sheet = get_current_week_sheet(user)
-        sheet["title"] = "Текущая неделя"
-        sheets.append(sheet)
+    if week := get_previous_week_sheet(user):
+        sheets.append({"keyboard": week, "text": "Предыдущая неделя"})
 
-    if get_next_week_sheet(user):
-        sheet = get_next_week_sheet(user)
-        sheet["title"] = "Следующая неделя"
-        sheets.append(sheet)
+    if week := get_current_week_sheet(user):
+        sheets.append({"keyboard": week, "text": "Текущая неделя"})
 
-    if len(sheets) > 1:
-        for sheet in sheets:
-            keyboard = sheet["keyboard"]
-            keyboard.append([
+    if week := get_next_week_sheet(user):
+        sheets.append({"keyboard": week, "text": "Следующая неделя"})
+
+    for sheet in sheets:
+        if len(sheets) > 1:
+            sheet["keyboard"].append([
                 InlineKeyboardButton(text=LEFT_ARROW, callback_data=LEFT_ARROW),
                 InlineKeyboardButton(text=RIGHT_ARROW, callback_data=RIGHT_ARROW)
             ])
-            sheet["keyboard"] = keyboard
 
-    for sheet in sheets:
-        keyboard = sheet["keyboard"]
-        sheet["reply_markup"] = InlineKeyboardMarkup(keyboard)
+        sheet["reply_markup"] = InlineKeyboardMarkup(sheet["keyboard"])
+
+    return sheets
+
+
+def get_timetable_sheets(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = User(telegram_id=update.effective_user.id)
+    date = context.user_data["date"]
+    timetable = user.get_date_timetable(date)
+
+    sheets = []
+
+    for cur_timetable in timetable:
+        data = dict()
+        data["timetable"] = cur_timetable
+        if len(timetable) > 1:
+            keyboard = [[
+                InlineKeyboardButton(text=LEFT_ARROW, callback_data=LEFT_ARROW),
+                InlineKeyboardButton(text=BACK_ARROW, callback_data=BACK_ARROW),
+                InlineKeyboardButton(text=RIGHT_ARROW, callback_data=RIGHT_ARROW)
+            ]]
+
+        else:
+            keyboard = [[
+                InlineKeyboardButton(text=BACK_ARROW, callback_data=BACK_ARROW)
+            ]]
+
+        data["reply_markup"] = InlineKeyboardMarkup(keyboard)
+
+        sheets.append(data)
 
     return sheets

@@ -64,6 +64,14 @@ class Text(BaseContainer):
         self._font = ImageFont.truetype(self._font.path, size=value)
         self._update_pixels()
 
+    @property
+    def horizontal_alignment(self):
+        return self._horizontal_alignment
+
+    @horizontal_alignment.setter
+    def horizontal_alignment(self, value:str):
+        self._horizontal_alignment = value
+
     def draw(self, canvas):
         cur_pos = self.pixels.left_top
         for line in self._lines:

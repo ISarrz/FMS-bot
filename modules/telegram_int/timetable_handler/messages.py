@@ -1,80 +1,63 @@
-from modules.time import *
 from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
+    Update
 )
 from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters
+    ContextTypes
 )
+from modules.telegram_int.constants import set_last_message_id, clear_last_message
 from modules.database import User
 from modules.logger.logger import async_logger, telegram_logger
-from modules.telegram_int.timetable_handler.sheets_generator import *
 
 
 @telegram_logger
 async def send_weeks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    sheets = context.user_data['timetable_sheets']
-    if not sheets:
-        await update.message.reply_text(text="Расписания нет", reply_markup=None)
-        return
-
-    try:
-        sheet = sheets[context.user_data['timetable_sheet']]
-
-    except IndexError:
-        await update.message.reply_text(text="Расписания нет", reply_markup=None)
+    await clear_last_message(update, context)
+    sheets = context.user_data["weeks_sheets"]
+    sheet = sheets[context.user_data["week_sheet_ind"]]
 
     message = await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=sheet["title"],
+        text=sheet["text"],
         reply_markup=sheet["reply_markup"]
     )
-
-    context.user_data['timetable_message'] = message
+    set_last_message_id(update.effective_chat.id, message.message_id)
+    context.user_data["timetable_message"] = message
 
 
 @async_logger
-async def update_weeks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    sheets = context.user_data['timetable_sheets']
+async def update_weeks_menu(context: ContextTypes.DEFAULT_TYPE):
+    sheets = context.user_data["weeks_sheets"]
+    sheet = sheets[context.user_data["week_sheet_ind"]]
 
-    if not sheets:
-        await update.message.reply_text(text="Расписания нет", reply_markup=None)
-        return
-
-    try:
-        sheet = sheets[context.user_data['timetable_sheet']]
-
-    except IndexError:
-        await update.message.reply_text(text="Расписания нет", reply_markup=None)
-
-    message = context.user_data['timetable_message']
+    message = context.user_data["timetable_message"]
 
     await context.bot.edit_message_text(
         chat_id=message.chat.id,
         message_id=message.message_id,
-        text=sheet["title"],
+        text=sheet["text"],
         reply_markup=sheet["reply_markup"]
     )
 
 
 @telegram_logger
-async def send_timetable(update: Update, context: ContextTypes.DEFAULT_TYPE, date: str):
-    sheets = context.user_data['timetable_sheets']
-    sheet = sheets[context.user_data['timetable_sheet']]
-    timetable = sheet["timetables"][date]
+async def send_timetable_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await clear_last_message(update, context)
+    sheets = context.user_data["timetable_sheets"]
+    sheet = sheets[context.user_data["timetable_sheet_ind"]]
     user = User(telegram_id=update.effective_chat.id)
 
     if user.settings.mode == "image":
-        await context.bot.send_photo(
+        message = await context.bot.send_photo(
             chat_id=update.effective_chat.id,
-            photo=timetable.image
+            photo=sheet["timetable"].image,
+            reply_markup=sheet["reply_markup"]
         )
+        set_last_message_id(update.effective_chat.id, message.message_id)
 
     elif user.settings.mode == "text":
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=timetable.text)
+        message = await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=sheet["timetable"].text,
+            reply_markup=sheet["reply_markup"]
+        )
+        set_last_message_id(update.effective_chat.id, message.message_id)

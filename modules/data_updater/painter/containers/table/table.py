@@ -252,15 +252,17 @@ class Table(BaseContainer):
         cell2 = self._content[coordinates2[0]][coordinates2[1]]
         if isinstance(cell1, UnitedCell):
             if cell1.parent is None:
+                united_cell1 = cell1
+            else:
                 united_cell1 = cell1.parent
-            united_cell1 = cell1
         else:
             united_cell1 = UnitedCell.convert_cell_to_united_cell(cell1)
+
         if isinstance(cell2, UnitedCell):
             if cell2.parent is None:
-                united_cell2 = cell2.parent
-            else:
                 united_cell2 = cell2
+            else:
+                united_cell2 = cell2.parent
         else:
             united_cell2 = UnitedCell.convert_cell_to_united_cell(cell2)
 

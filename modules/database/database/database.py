@@ -23,6 +23,7 @@ class DB:
 
     events_table_name = "events"
     regular_events_table_name = "regular_events"
+    events_from_regular_events_table_name = "events_from_regular_events"
     free_dates_for_regular_events_table_name = "free_dates_for_regular_events"
 
     timetable_table_name = "timetable"
@@ -236,6 +237,7 @@ class DB:
             DB._create_users_notifications_table()
             DB._create_users_settings_table()
             DB._create_free_dates_for_regular_events_table()
+            DB._create_events_from_regular_events_tabe()
 
         except Exception:
             print("Database initialization failed")
@@ -284,6 +286,18 @@ class DB:
                             end           TEXT,
                             owner         TEXT,
                             place         TEXT
+                        )""")
+    @staticmethod
+    def _create_events_from_regular_events_tabe():
+        with sqlite3.connect(database_path) as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
+                        CREATE TABLE IF NOT EXISTS events_from_regular_events
+                        (
+                            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                            event_id         INTEGER REFERENCES events,
+                            regular_event_id INTEGER REFERENCES regular_events
                         )""")
 
     @staticmethod

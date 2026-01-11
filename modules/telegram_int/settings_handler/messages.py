@@ -15,16 +15,17 @@ from telegram.ext import (
 )
 from modules.database import User
 from modules.logger.logger import async_logger
-
+from modules.telegram_int.constants import set_last_message_id, get_last_message_id
 from modules.telegram_int.settings_handler.sheets_generator import *
 
 
 @async_logger
 async def send_settings_menu(update: Update, context: CallbackContext):
+    await clear_last_message(update,context)
     sheet = get_settings_menu_sheet(User(telegram_id=update.effective_chat.id))
 
     message = await update.message.reply_text(text="Настройки", reply_markup=sheet)
-
+    set_last_message_id( update.effective_chat.id,message.message_id)
     context.chat_data['settings_message'] = message
 
 

@@ -209,11 +209,8 @@ class User:
     def timetable(self) -> List[Timetable]:
         return Timetable.user_timetable(user_id=self.id)
 
-    def get_date_timetable(self, date: str) -> Timetable:
-        try:
-            return Timetable(user_id=self.id, date=date)
-        except TimetableNotFoundError:
-            return None
+    def get_date_timetable(self, date: str) -> List[Timetable]:
+        return Timetable.by_user_id_and_date(self.id, date)
 
     def insert_timetable(self, date: str, image: bytes, text: str):
         return Timetable.insert(user_id=self.id, date=date, image=image, text=text)
