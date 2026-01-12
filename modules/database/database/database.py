@@ -1,13 +1,8 @@
 import sqlite3
-import subprocess
-from modules.config.paths import database_path
-from modules.config.config import get_config_field
-from datetime import datetime
 import xml.etree.ElementTree as ET
 from modules.config.paths import database_path
 from modules.config.config import get_config_field
 import re
-import os
 from datetime import datetime
 import subprocess
 
@@ -36,11 +31,11 @@ class DB:
         cmd = [
             "curl",
             "--request", "PUT",
-            "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
+            "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
             "--aws-sigv4", "aws:amz:ru-central1:s3",
             "--upload-file", database_path,
             "--verbose",
-            f"{get_config_field('yandex_bucket_address')}/{cur_date}.db",
+            f"{get_config_field("yandex_bucket_address")}/{cur_date}.db",
         ]
 
         result = subprocess.run(
@@ -48,17 +43,17 @@ class DB:
             capture_output=True,
             text=True,
         )
-        print(result.stderr)
+
         return result.returncode
 
     @staticmethod
     def load_backup(backup_name: str):
         cmd = ["curl",
                "--request", "GET",
-               "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
+               "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
                "--aws-sigv4", "aws:amz:ru-central1:s3",
                "--verbose",
-               f"{get_config_field('yandex_bucket_address')}/{backup_name}"
+               f"{get_config_field("yandex_bucket_address")}/{backup_name}"
                ]
 
         with open(database_path, "wb") as f:
@@ -74,10 +69,10 @@ class DB:
     def get_backups_names():
         cmd = ["curl",
                "--request", "GET",
-               "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
+               "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
                "--aws-sigv4", "aws:amz:ru-central1:s3",
                "--verbose",
-               f"{get_config_field('yandex_bucket_address')}?list-type=2"
+               f"{get_config_field("yandex_bucket_address")}?list-type=2"
                ]
 
         result = subprocess.run(
@@ -253,8 +248,13 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users
                         (
-                            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                            telegram_id INTEGER
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            telegram_id
+                            INTEGER
                         )""")
 
     @staticmethod
@@ -265,9 +265,19 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_groups
                         (
-                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
-                            user_id  INTEGER REFERENCES users,
-                            group_id INTEGER REFERENCES groups
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            user_id
+                            INTEGER
+                            REFERENCES
+                            users,
+                            group_id
+                            INTEGER
+                            REFERENCES
+                            groups
                         )""")
 
     @staticmethod
@@ -278,15 +288,29 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS events
                         (
-                            id            INTEGER PRIMARY KEY AUTOINCREMENT,
-                            name          TEXT,
-                            group_id      INTEGER REFERENCES groups,
-                            date          TEXT,
-                            start TEXT,
-                            end           TEXT,
-                            owner         TEXT,
-                            place         TEXT
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            name
+                            TEXT,
+                            group_id
+                            INTEGER
+                            REFERENCES
+                            groups,
+                            date
+                            TEXT,
+                            start
+                            TEXT,
+                            end
+                            TEXT,
+                            owner
+                            TEXT,
+                            place
+                            TEXT
                         )""")
+
     @staticmethod
     def _create_events_from_regular_events_tabe():
         with sqlite3.connect(database_path) as conn:
@@ -295,9 +319,19 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS events_from_regular_events
                         (
-                            id               INTEGER PRIMARY KEY AUTOINCREMENT,
-                            event_id         INTEGER REFERENCES events,
-                            regular_event_id INTEGER REFERENCES regular_events
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            event_id
+                            INTEGER
+                            REFERENCES
+                            events,
+                            regular_event_id
+                            INTEGER
+                            REFERENCES
+                            regular_events
                         )""")
 
     @staticmethod
@@ -308,14 +342,27 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS regular_events
                         (
-                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
-                            name     TEXT,
-                            group_id INTEGER REFERENCES groups,
-                            weekday  INTEGER,
-                            start    TEXT,
-                            end      TEXT,
-                            owner    TEXT,
-                            place    TEXT
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            name
+                            TEXT,
+                            group_id
+                            INTEGER
+                            REFERENCES
+                            groups,
+                            weekday
+                            INTEGER,
+                            start
+                            TEXT,
+                            end
+                            TEXT,
+                            owner
+                            TEXT,
+                            place
+                            TEXT
                         )""")
 
     @staticmethod
@@ -326,8 +373,13 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS groups
                         (
-                            id   INTEGER PRIMARY KEY AUTOINCREMENT,
-                            name TEXT
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            name
+                            TEXT
                         )""")
 
     @staticmethod
@@ -338,9 +390,19 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS groups_relations
                         (
-                            id        INTEGER PRIMARY KEY AUTOINCREMENT,
-                            parent_id INTEGER REFERENCES groups,
-                            child_id  INTEGER REFERENCES groups
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            parent_id
+                            INTEGER
+                            REFERENCES
+                            groups,
+                            child_id
+                            INTEGER
+                            REFERENCES
+                            groups
                         )""")
 
     @staticmethod
@@ -351,11 +413,21 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS timetable
                         (
-                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-                            user_id INTEGER REFERENCES users,
-                            date    TEXT,
-                            text    TEXT,
-                            image   BLOB
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            user_id
+                            INTEGER
+                            REFERENCES
+                            users,
+                            date
+                            TEXT,
+                            text
+                            TEXT,
+                            image
+                            BLOB
                         )""")
 
     @staticmethod
@@ -366,8 +438,13 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS logs
                         (
-                            id    INTEGER PRIMARY KEY AUTOINCREMENT,
-                            value TEXT
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            value
+                            TEXT
                         )""")
 
     @staticmethod
@@ -378,10 +455,20 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_settings
                         (
-                            id            INTEGER PRIMARY KEY AUTOINCREMENT,
-                            user_id       parent_id INTEGER REFERENCES users,
-                            notifications INT,
-                            mode          TEXT
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            user_id
+                            parent_id
+                            INTEGER
+                            REFERENCES
+                            users,
+                            notifications
+                            INT,
+                            mode
+                            TEXT
                         )""")
 
     @staticmethod
@@ -392,10 +479,20 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_notifications
                         (
-                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-                            user_id parent_id INTEGER REFERENCES users,
-                            value   TEXT
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            user_id
+                            parent_id
+                            INTEGER
+                            REFERENCES
+                            users,
+                            value
+                            TEXT
                         )""")
+
     @staticmethod
     def _create_free_dates_for_regular_events_table():
         with sqlite3.connect(database_path) as conn:
@@ -404,9 +501,18 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS free_dates_for_regular_events
                         (
-                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-                            regular_event_id parent_id INTEGER REFERENCES regular_events,
-                            date TEXT 
+                            id
+                            INTEGER
+                            PRIMARY
+                            KEY
+                            AUTOINCREMENT,
+                            regular_event_id
+                            parent_id
+                            INTEGER
+                            REFERENCES
+                            regular_events,
+                            date
+                            TEXT
                         )""")
 
 

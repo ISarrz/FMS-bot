@@ -33,6 +33,10 @@ class TimetableFetcher:
         return TimetableFetcher.constructor(DB.fetch_many(DB.timetable_table_name, id=id))
 
     @staticmethod
+    def fetch_by_user_id_and_date(user_id: int, date: str):
+        return TimetableFetcher.constructor(DB.fetch_many(DB.timetable_table_name, user_id=user_id, date=date))
+
+    @staticmethod
     def fetch(**kwargs):
         return TimetableFetcher.constructor(DB.fetch_one(DB.timetable_table_name, **kwargs))
 
@@ -60,7 +64,7 @@ class ImageDeleter:
 
 class ImageInserter:
     @staticmethod
-    def insert(user_id: int, date: str, image: bytes, text:str):
+    def insert(user_id: int, date: str, image: bytes, text: str):
         DB.insert_one(DB.timetable_table_name, user_id=user_id, date=date, image=image, text=text)
 
 
@@ -113,8 +117,21 @@ class Timetable:
 
     @staticmethod
     def insert(user_id: int, date: str, image: bytes, text: str):
-        ImageInserter.insert(user_id, date, image, text)
-        return Timetable(user_id=user_id, date=date, image=image, text=text)
+        try:
+            Timetable(user_id=user_id, date=date, image=image, text=text)
+
+        except TimetableNotFoundError:
+            pass
+            ImageInserter.insert(user_id, date, image, text)
+            return Timetable(user_id=user_id, date=date, image=image, text=text)
+
+    @staticmethod
+    def by_user_id_and_date(user_id: int, date: str):
+        timetable = TimetableFetcher.fetch_by_user_id_and_date(user_id, date)
+        if timetable:
+            return [Timetable(db_timetable=timetable_info) for timetable_info in timetable]
+
+        return []
 
     @staticmethod
     def user_timetable(user_id: int):

@@ -90,6 +90,9 @@ class Parser:
 
             time = self.table.matrix[row][self.time_col]
             event = self.parse_event(time, cur_cell)
+            if event.name.strip().lower() == "спецкурсы":
+                continue
+
             events.append(event)
 
         return events

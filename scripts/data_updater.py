@@ -9,7 +9,7 @@ from modules.data_updater.painter import updater
 from modules.logger.logger import logger, async_logger
 from modules.database.database.database import DB
 from modules.database.log.log import Log
-# from modules.database.event.regular_event import RegularEvent
+from modules.database.event.regular_event import RegularEvent
 
 @logger
 def run_painter():
@@ -37,17 +37,17 @@ async def web_parse():
 def run_web_parser():
     asyncio.run(web_parse())
 
-# @logger
-# def generate_events():
-#     for regular_event in RegularEvent.all():
-#         regular_event.generate_events()
+@logger
+def generate_events():
+    for regular_event in RegularEvent.all():
+        regular_event.generate_events()
 
 @logger
 def run_data_update():
     run_data_cleaner()
     run_web_parser()
     run_parser()
-    # generate_events()
+    generate_events()
     run_painter()
 
 
@@ -64,7 +64,7 @@ def data_update_run_once():
 
 
 def data_update_run_repeat():
-    schedule.every(5).minutes.do(run_data_update)
+    schedule.every(1).minutes.do(run_data_update)
     schedule.every().monday.do(make_database_backup)
     while True:
         schedule.run_pending()
