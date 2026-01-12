@@ -101,11 +101,8 @@ def update_user(user: User):
         return
 
     notif = [notification.value for notification in user.notifications]
-    print(notif)
     notif.append(f"Доступно расписание на {', '.join(dates)}")
-    print(notif)
     user.notifications = notif
-    pass
 
 
 def update_user_academic_group(user: User, group: Group, date: str):
