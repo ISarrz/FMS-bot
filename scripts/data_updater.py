@@ -44,6 +44,7 @@ def generate_events():
 
 @logger
 def run_data_update():
+    print("update")
     run_data_cleaner()
     run_web_parser()
     run_parser()
