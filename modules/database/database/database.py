@@ -31,11 +31,11 @@ class DB:
         cmd = [
             "curl",
             "--request", "PUT",
-            "--user", f"{get_config_field("yandex_key")}:{get_config_field("yandex_secret_key")}",
+            "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
             "--aws-sigv4", "aws:amz:ru-central1:s3",
             "--upload-file", database_path,
             "--verbose",
-            f"{get_config_field("yandex_bucket_address")}/{cur_date}.db",
+            f"{get_config_field('yandex_bucket_address')}/{cur_date}.db",
         ]
 
         result = subprocess.run(
