@@ -86,6 +86,8 @@ def group_is_academic_group(group: Group):
 
 
 def update_user(user: User):
+    if user.id == 2:
+        pass
     dates = []
     for date in get_current_string_dates():
         for group in user.groups:
@@ -100,9 +102,9 @@ def update_user(user: User):
     if not dates:
         return
 
-    notif = [notification.value for notification in user.notifications]
-    notif.append(f"Доступно расписание на {', '.join(dates)}")
-    user.notifications = notif
+    # notif = [notification.value for notification in user.notifications]
+    # notif.append(f"Доступно расписание на {', '.join(dates)}")
+    # user.notifications = notif
 
 
 def update_user_academic_group(user: User, group: Group, date: str):
@@ -111,7 +113,7 @@ def update_user_academic_group(user: User, group: Group, date: str):
 
     if image:
         try:
-            Timetable(date=date, image=image, text=text)
+            Timetable(date=date,user_id=user.id, image=image, text=text)
 
         except TimetableNotFoundError:
             user.insert_timetable(date=date, image=image, text=text)
@@ -133,7 +135,7 @@ def update_user_class(user: User, group: Group, date: str):
         text = get_user_class_text(user, group, date)
         if image:
             try:
-                Timetable(date=date, image=image, text=text)
+                Timetable(date=date, user_id=user.id,image=image, text=text)
 
             except TimetableNotFoundError:
                 user.insert_timetable(date=date, image=image, text=text)
@@ -149,7 +151,7 @@ def update_user_class(user: User, group: Group, date: str):
             text = get_user_class_group_text(user, child, date)
             if image:
                 try:
-                    Timetable(date=date, image=image, text=text)
+                    Timetable(date=date, user_id=user.id, image=image, text=text)
 
                 except TimetableNotFoundError:
                     user.insert_timetable(date=date, image=image, text=text)
@@ -541,7 +543,7 @@ def update_user_clubs(user: User, date: str):
     text = get_user_clubs_text(user, date)
     if image:
         try:
-            Timetable(date=date, image=image, text=text)
+            Timetable(date=date, user_id=user.id,image=image, text=text)
 
         except TimetableNotFoundError:
             user.insert_timetable(date=date, image=image, text=text)
