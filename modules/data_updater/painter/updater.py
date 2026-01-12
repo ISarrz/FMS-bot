@@ -86,8 +86,6 @@ def group_is_academic_group(group: Group):
 
 
 def update_user(user: User):
-    if user.id == 2:
-        pass
     dates = []
     for date in get_current_string_dates():
         for group in user.groups:
@@ -102,9 +100,9 @@ def update_user(user: User):
     if not dates:
         return
 
-    # notif = [notification.value for notification in user.notifications]
-    # notif.append(f"Доступно расписание на {', '.join(dates)}")
-    # user.notifications = notif
+    notif = [notification.value for notification in user.notifications]
+    notif.append(f"Доступно расписание на {', '.join(dates)}")
+    user.notifications = notif
 
 
 def update_user_academic_group(user: User, group: Group, date: str):
