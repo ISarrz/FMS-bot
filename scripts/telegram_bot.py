@@ -4,7 +4,7 @@ from modules.config import *
 from modules.telegram_int.timetable_handler.handlers import ConversationHandler_timetable
 from modules.telegram_int.start_handler.handlers import ConversationHandler_start
 from modules.telegram_int.settings_handler.handlers import ConversationHandler_settings
-from modules.logger.logger import async_logger, logger
+from modules.logger.logger import async_logger
 
 from modules.statistics.statistics import statistic
 from io import BytesIO
@@ -12,12 +12,10 @@ from datetime import datetime
 from telegram import (
     Update
 )
-import sqlite3
-from modules.config.paths import database_path
+
 from telegram.ext import (
     ApplicationBuilder,
     CallbackContext,
-    ContextTypes,
     CommandHandler
 )
 
@@ -28,10 +26,11 @@ async def save_database(update: Update, context: CallbackContext):
         return
 
     if DB.make_backup() == 0:
-        await context.bot.send_message(chat_id=update.effective_chat.id,text="Успешно")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Успешно")
 
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Ошибка")
+
 
 @async_logger
 async def send_notification(update: Update, context: CallbackContext):
@@ -114,7 +113,7 @@ def main():
     job_deque.run_repeating(send_users_notifications, 60)
     job_deque.run_repeating(send_logs, 20)
     job_deque.run_repeating(day_statistics, 60)
-    #
+
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

@@ -1,22 +1,14 @@
-from modules.time import get_current_week_string_days, get_current_week_string_weekdays
-from modules.database.group.group import Group
-from modules.telegram_int.constants import *
+from modules.telegram_int.constants import LEFT_ARROW, RIGHT_ARROW, BACK_ARROW, TICK, CROSS
 from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
-from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    CallbackContext,
-    filters
-)
+from telegram.ext import CallbackContext
+
 from modules.database import User
-from modules.logger.logger import async_logger
+
+MAX_LENGTH = 5
 
 
 def get_settings_menu_sheet(user: User):
@@ -33,12 +25,10 @@ def get_settings_menu_sheet(user: User):
     return reply_markup
 
 
-
-
 def get_groups_menu_sheets(update: Update, context: CallbackContext):
     main_group = context.chat_data['settings_group']
     sheets = []
-    MAX_LENGTH = 5
+
     user = User(telegram_id=update.effective_chat.id)
     for group in main_group.children:
         text = group.name
@@ -60,6 +50,5 @@ def get_groups_menu_sheets(update: Update, context: CallbackContext):
         else:
             sheet.append([InlineKeyboardButton(text=BACK_ARROW, callback_data=BACK_ARROW)])
         sheets[i] = InlineKeyboardMarkup(sheet)
-
 
     return sheets

@@ -29,8 +29,7 @@ async def send_start_menu(update: Update, context: CallbackContext):
     await clear_last_message(update,context)
     text = get_telegram_message("info")
 
-    keyboard = []
-    keyboard.append([InlineKeyboardButton(text="Далее", callback_data="1")])
+    keyboard = [[InlineKeyboardButton(text="Далее", callback_data="1")]]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -42,9 +41,8 @@ async def send_start_menu(update: Update, context: CallbackContext):
 @async_logger
 async def update_grade_menu(update: Update, context: CallbackContext):
     message = context.chat_data["start_message"]
-    keyboard = []
-    keyboard.append([InlineKeyboardButton(text="11 класс", callback_data="11 класс")])
-    keyboard.append([InlineKeyboardButton(text="10 класс", callback_data="10 класс")])
+    keyboard = [[InlineKeyboardButton(text="11 класс", callback_data="11 класс")],
+                [InlineKeyboardButton(text="10 класс", callback_data="10 класс")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     text = get_telegram_message("grade")

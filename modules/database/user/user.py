@@ -7,7 +7,7 @@ from modules.database.database.database import DB
 from modules.database.group.group import Group
 from modules.database.user.user_settings import UserSettings
 from modules.database.event.event import Event
-from modules.database.timetable.timetable import Timetable, TimetableNotFoundError
+from modules.database.timetable.timetable import Timetable
 from modules.database.user.user_notification import UserNotification
 
 

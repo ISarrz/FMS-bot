@@ -1,11 +1,5 @@
-from modules.config import get_telegram_message
 from modules.database import Group, User
 from modules.logger.logger import async_logger
-from modules.telegram_int.start_handler.sheets_generator import (
-    get_ten_grade_sheet, get_eleven_grade_sheet,
-    get_eleven_grade_academic_groups_sheet,
-    get_ten_grade_academic_groups_sheet
-)
 from modules.data_updater.painter.updater import update_user
 from modules.telegram_int.start_handler.messages import (
     update_grade_menu,
@@ -15,22 +9,17 @@ from modules.telegram_int.start_handler.messages import (
     update_academic_group_menu,
     update_end_menu
 )
-from modules.telegram_int.constants import get_last_message_id, clear_last_message
+from modules.telegram_int.constants import clear_last_message
 
 from telegram.ext import (
     ConversationHandler,
     CommandHandler,
     MessageHandler,
     filters,
-    ContextTypes,
     CallbackQueryHandler,
     CallbackContext,
 )
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
+from telegram import Update
 
 GRADE_MENU_HANDLER = 0
 SCHOOL_CLASS_HANDLER = 1
@@ -41,7 +30,7 @@ END_HANDLER = 4
 
 @async_logger
 async def start_menu_handler(update: Update, context: CallbackContext):
-    await clear_last_message(update,context)
+    await clear_last_message(update, context)
 
     await send_start_menu(update, context)
     User.safe_insert(update.effective_chat.id)

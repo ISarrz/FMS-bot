@@ -45,7 +45,7 @@ def generate_events():
 @logger
 def run_data_update():
     run_data_cleaner()
-    # run_web_parser()
+    run_web_parser()
     run_parser()
     generate_events()
     run_painter()
@@ -72,5 +72,5 @@ def data_update_run_repeat():
 
 
 if __name__ == "__main__":
-    data_update_run_once()
-    # data_update_run_repeat()
+    # data_update_run_once()
+    data_update_run_repeat()

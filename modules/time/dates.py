@@ -15,8 +15,8 @@ NUMBERS_TO_WEEKDAYS = {
 
 MAX_WEEKDAY_LENGTH = max(len(weekday) for weekday in NUMBERS_TO_WEEKDAYS.values())
 WEEKDAY_PADDING = 2
-# SET_DATE = None
-SET_DATE = dt.datetime.strptime("15.12.2025", "%d.%m.%Y")
+SET_DATE = None
+# SET_DATE = dt.datetime.strptime("15.12.2025", "%d.%m.%Y")
 
 
 def get_string_dates(dates):

@@ -1,7 +1,5 @@
+import os
 import datetime
-
-from sympy.codegen.ast import continue_
-
 from modules.database.timetable.timetable import Timetable, TimetableNotFoundError
 from modules.database.user.user import User
 from modules.time.dates import get_current_string_dates
@@ -9,7 +7,6 @@ from PIL import ImageDraw, Image
 from modules.data_updater.painter.containers.table.table import Table
 from modules.data_updater.painter.containers.column import Column
 from modules.data_updater.painter.containers.text import Text
-import os
 from modules.database.group.group import Group
 from modules.data_updater.painter.constants import colors
 
@@ -290,17 +287,8 @@ def get_user_class_image(user: User, group: Group, date: str):
 
     table[0][0].pixels.padding = 10
     table[0][1].pixels.padding = 10
-
     table[1][1].pixels.padding = 10
-    # table[1][1].outline_width = 5
-    # table[1][1].top_outline_width = 2
-    # table[1][1].outline_color = colors["discord2"]
-
-    # table[1][2].outline_width = 5
-    # table[1][2].top_outline_width = 2
-    # table[1][2].outline_color = colors["discord2"]
     table[1][2].pixels.padding = 10
-    # table[1][1].outline_width = 8
 
     # расписание
     for i in range(2, table.height):
@@ -464,7 +452,6 @@ def get_user_clubs_image(user: User, date: str):
 
     if not events:
         return None
-
 
     content = [[None for _ in range(2)] for _ in range(len(events) + 1)]
     date = date.split(".")

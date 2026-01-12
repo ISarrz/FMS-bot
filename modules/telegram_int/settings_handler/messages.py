@@ -1,31 +1,21 @@
-from modules.time import get_current_week_string_days, get_current_week_string_weekdays
-
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
-from telegram.ext import (
-    ContextTypes,
-    ConversationHandler,
-    CommandHandler,
-    CallbackQueryHandler,
-    MessageHandler,
-    filters, CallbackContext
-)
+from telegram import Update
+from telegram.ext import CallbackContext
 from modules.database import User
 from modules.logger.logger import async_logger
-from modules.telegram_int.constants import set_last_message_id, get_last_message_id
-from modules.telegram_int.settings_handler.sheets_generator import *
+from modules.telegram_int.constants import clear_last_message, set_last_message_id
+from modules.telegram_int.settings_handler.sheets_generator import (
+    get_settings_menu_sheet,
+    get_groups_menu_sheets
+)
 
 
 @async_logger
 async def send_settings_menu(update: Update, context: CallbackContext):
-    await clear_last_message(update,context)
+    await clear_last_message(update, context)
     sheet = get_settings_menu_sheet(User(telegram_id=update.effective_chat.id))
 
     message = await update.message.reply_text(text="Настройки", reply_markup=sheet)
-    set_last_message_id( update.effective_chat.id,message.message_id)
+    set_last_message_id(update.effective_chat.id, message.message_id)
     context.chat_data['settings_message'] = message
 
 
