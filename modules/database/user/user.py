@@ -243,6 +243,9 @@ class User:
 
         return []
 
+    def get_subgroups(self, group: Group):
+        return Group.user_subgroups(user_id=self.id, group_id=group.id)
+
     def __str__(self):
         return f"id: {self.id}, telegram_id: {self.telegram_id}"
 

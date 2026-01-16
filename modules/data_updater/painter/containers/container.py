@@ -191,26 +191,26 @@ class Container(BaseContainer):
         if self.top_outline_width:
             gap1 = (self.top_outline_width - 1) // 2
             gap2 = self.top_outline_width // 2
-            canvas.line((left_x - gap1, top_y + gap1, right_x + gap2, top_y + gap1), fill=self._top_outline_color,
+            canvas.line((left_x, top_y, right_x + gap2, top_y), fill=self._top_outline_color,
                         width=self._top_outline_width)
 
         if self.bottom_outline_width:
             gap1 = (self.bottom_outline_width - 1) // 2
             gap2 = self.bottom_outline_width // 2
-            canvas.line((left_x - gap1, bottom_y - gap1, right_x + gap2, bottom_y - gap1),
+            canvas.line((left_x, bottom_y, right_x, bottom_y),
                         fill=self._bottom_outline_color,
                         width=self._bottom_outline_width)
 
         if self.left_outline_width:
             gap1 = (self.left_outline_width - 1) // 2
             gap2 = self.left_outline_width // 2
-            canvas.line((left_x, top_y, left_x, bottom_y), fill=self._left_outline_color,
+            canvas.line((left_x, top_y - gap1, left_x, bottom_y + gap2), fill=self._left_outline_color,
                         width=self._left_outline_width)
 
         if self.right_outline_width:
             gap1 = (self.right_outline_width - 1) // 2
             gap2 = self.right_outline_width // 2
-            canvas.line((right_x, top_y, right_x, bottom_y), fill=self._right_outline_color,
+            canvas.line((right_x, top_y - gap1, right_x, bottom_y + gap2), fill=self._right_outline_color,
                         width=self._right_outline_width)
 
     def draw_inside(self, canvas):

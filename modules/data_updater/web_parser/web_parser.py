@@ -27,9 +27,10 @@ class WebParser:
     @staticmethod
     def get_pool_files():
         downloaded_files = os.listdir(downloaded_files_path) + os.listdir(parsed_files_path)
+        downloaded_files = [".".join(date.split(".")[:2]) for date in downloaded_files]
         dates_pool = ['.'.join(date.split('.')[:2]) for date in get_current_string_dates()]
 
-        pool_files = [date + ".xlsx" for date in dates_pool if date + ".xlsx" not in downloaded_files]
+        pool_files = [date + ".xlsx" for date in dates_pool if date not in downloaded_files]
         return pool_files
 
     async def download(self):

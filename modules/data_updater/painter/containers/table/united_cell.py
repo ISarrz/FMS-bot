@@ -17,11 +17,18 @@ class UnitedCell(Cell):
     def convert_cell_to_united_cell(cell: Cell) -> UnitedCell:
         united_cell = UnitedCell()
         united_cell._table = cell._table
+        united_cell.fill = cell.fill
+
         united_cell.pixels = cell.pixels
         united_cell.content = cell.content
         united_cell.coordinates = cell.coordinates
         united_cell.left_top = cell.coordinates
         united_cell.right_bottom = cell.coordinates
+
+        united_cell.horizontal_alignment = cell.horizontal_alignment
+        united_cell.vertical_alignment = cell.vertical_alignment
+        # united_cell.outline_width = cell.outline_width
+        united_cell.outline_color = cell.outline_color
 
         united_cell.set_main(united_cell, united_cell)
 
@@ -62,3 +69,8 @@ class UnitedCell(Cell):
         self.left_top = main_cell.coordinates
         self.right_bottom = (self.top_row + self.height - 1, self.left_column + self.width - 1)
         self.pixels.padding = main_cell.pixels.padding
+
+        self.fill = main_cell.fill
+        self.vertical_alignment = main_cell.vertical_alignment
+        self.horizontal_alignment = main_cell.horizontal_alignment
+        self.outline_color = main_cell.outline_color

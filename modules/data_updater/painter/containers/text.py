@@ -6,6 +6,7 @@ from modules.data_updater.painter.containers.base_container import BaseContainer
 import os
 from PIL import Image, ImageDraw, ImageFont
 
+
 def get_font(name, size=12):
     name = "_".join(name.split()) + ".ttf"
     path = os.path.join(fonts_path, name)
@@ -48,6 +49,10 @@ class Text(BaseContainer):
         self.pixels.height = height
 
     @property
+    def lines(self):
+        return self._lines
+
+    @property
     def value(self):
         return self._value
 
@@ -69,7 +74,7 @@ class Text(BaseContainer):
         return self._horizontal_alignment
 
     @horizontal_alignment.setter
-    def horizontal_alignment(self, value:str):
+    def horizontal_alignment(self, value: str):
         self._horizontal_alignment = value
 
     def draw(self, canvas):

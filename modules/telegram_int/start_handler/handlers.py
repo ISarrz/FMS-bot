@@ -1,6 +1,6 @@
 from modules.database import Group, User
 from modules.logger.logger import async_logger
-from modules.data_updater.painter.updater import update_user
+from modules.data_updater.updater import update_user
 from modules.telegram_int.start_handler.messages import (
     update_grade_menu,
     send_start_menu,

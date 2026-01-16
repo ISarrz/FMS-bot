@@ -116,6 +116,15 @@ class Timetable:
         return self._timetable.text
 
     @staticmethod
+    def exist(**kwargs):
+        try:
+            Timetable(**kwargs)
+            return True
+
+        except TimetableNotFoundError:
+            return False
+
+    @staticmethod
     def insert(user_id: int, date: str, image: bytes, text: str):
         try:
             Timetable(user_id=user_id, date=date, image=image, text=text)

@@ -5,7 +5,7 @@ import asyncio
 from modules.data_updater.web_parser.web_parser import WebParser
 from modules.data_updater.data_cleaner.data_cleaner import DataCleaner
 from modules.data_updater.files_parser.parser import Parser
-from modules.data_updater.painter import updater
+from modules.data_updater import updater
 from modules.logger.logger import logger, async_logger
 from modules.database.database.database import DB
 from modules.database.log.log import Log
@@ -73,5 +73,8 @@ def data_update_run_repeat():
 
 
 if __name__ == "__main__":
-    # data_update_run_once()
-    data_update_run_repeat()
+    start_time = time.perf_counter()
+    data_update_run_once()
+    end_time = time.perf_counter()
+    print(f"Затраченное время: {end_time - start_time:0.10f} сек")
+    # data_update_run_repeat()

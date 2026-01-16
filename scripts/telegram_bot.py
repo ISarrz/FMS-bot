@@ -32,6 +32,7 @@ async def save_database(update: Update, context: CallbackContext):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Ошибка")
 
 
+
 @async_logger
 async def send_notification(update: Update, context: CallbackContext):
     if update.effective_chat.id != get_config_field('admin_chat_id'):
@@ -68,10 +69,11 @@ async def day_statistics(context: CallbackContext):
 
     if datetime.now().hour == 12 and not statistic.flag:
         statistic.flag = True
-        statistic.reset()
-        text = str(statistic)
-        chat_id = get_config_field('admin_chat_id')
-        await context.bot.send_message(chat_id=chat_id, text=text)
+    statistic.reset()
+    text = str(statistic)
+    chat_id = get_config_field('admin_chat_id')
+    await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
+
 
     if datetime.now().hour != 12:
         statistic.flag = False
@@ -112,7 +114,7 @@ def main():
     job_deque = application.job_queue
     job_deque.run_repeating(send_users_notifications, 60)
     job_deque.run_repeating(send_logs, 20)
-    job_deque.run_repeating(day_statistics, 60)
+    job_deque.run_repeating(day_statistics, 20)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 

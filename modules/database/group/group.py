@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import List
 from dataclasses import dataclass
 from modules.database.database.database import DB
+from modules.config.paths import database_path
+import sqlite3
 
 
 class GroupNotFoundError(Exception):
@@ -138,7 +140,38 @@ class GroupFetcher:
 
     @staticmethod
     def fetch_user_groups(user_id: int) -> List[DbGroup]:
-        groups_id = [info["group_id"] for info in DB.fetch_many(DB.users_groups_table_name, user_id=user_id)]
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
+                           SELECT g.id, name
+                           FROM groups g JOIN users_groups ug ON g.id = ug.group_id
+                           WHERE ug.user_id = {user_id}
+                           """, )
+
+            response = cur.fetchall()
+
+        groups_id = [info["id"] for info in response]
+        if groups_id:
+            return GroupFetcher.constructor(response)
+
+        return []
+
+    @staticmethod
+    def fetch_user_subgroups(user_id: int, group_id: int) -> List[DbGroup]:
+        with sqlite3.connect(database_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(f"""
+                    SELECT ug.group_id
+                    FROM groups_relations gr JOIN users_groups ug ON gr.child_id = ug.group_id
+                    WHERE gr.parent_id = {group_id}
+                    AND ug.user_id = {user_id}
+                    """, )
+
+            response = cur.fetchall()
+
+        groups_id = [info["group_id"] for info in response]
         if groups_id:
             return [GroupFetcher.fetch_by_id(group_id) for group_id in groups_id]
 
@@ -218,6 +251,15 @@ class Group:
         return []
 
     @staticmethod
+    def user_subgroups(user_id: int, group_id: int) -> List[Group]:
+        groups = GroupFetcher.fetch_user_subgroups(user_id, group_id)
+
+        if groups:
+            return [Group(db_group=group_info) for group_info in groups]
+
+        return []
+
+    @staticmethod
     def by_parent_and_name(parent: Group, name: str) -> Group:
         return Group(GroupFetcher.fetch_by_parent_and_name(parent=parent._group, name=name))
 
@@ -269,14 +311,13 @@ class Group:
     def get_date_events(self, date: str):
         from modules.database.event.event import Event
 
-        return Event.by_group_and_date(self, date)
+        return sorted(Event.by_group_and_date(self, date))
 
     def delete(self):
         GroupDeleter.delete(self._group)
 
     def __str__(self):
         return f"Group id: {self.id}, name: {self.name}"
-
 
 
 if __name__ == "__main__":

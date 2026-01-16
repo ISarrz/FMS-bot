@@ -98,23 +98,31 @@ class Statistic:
 
         return False
 
+    @staticmethod
+    def align(text: str):
+        size = 10
+        return text.ljust(size, " ")
+
     def __str__(self):
         text = ""
         text += f"Всего пользователей: {self.users_count}\n"
         text += f"11 класс: {self.eleven_grade_count}\n"
         text += f"10 класс: {self.ten_grade_count}\n"
 
-        for group in Group(name="10 класс").children + Group(name="11 класс").children:
-            if "группа" in group.name:
-                continue
-
-            text += f"{group.name}: {self.get_field(group.name)}\n"
+        groups = Group(name="10 класс").children + Group(name="11 класс").children
+        groups = [group for group in groups if "группа" not in group.name]
+        for i in range(0, len(groups), 2):
+            left = groups[i]
+            right = groups[i + 1]
+            text += f"`{left.name:<2}: {self.get_field(left.name):<3} {right.name:<2}: {self.get_field(right.name):<3}`\n"
 
         text += f"Команда timetable: {self.timetable_count}\n"
         text += f"Ошибки: {self.errors_count}\n"
+
+        return text
 
 
 statistic = Statistic()
 
 if __name__ == "__main__":
-    pass
+    print(statistic)

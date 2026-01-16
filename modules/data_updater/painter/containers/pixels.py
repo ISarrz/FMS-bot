@@ -122,6 +122,7 @@ class Pixels:
 
     @width.setter
     def width(self, value):
+        value = int(value)
         if self.width == value:
             return
         self._right_bottom = self.left_top[0] + value - 1, self.right_bottom[1]
@@ -131,6 +132,7 @@ class Pixels:
 
     @height.setter
     def height(self, value):
+        value = int(value)
         if self.height == value:
             return
         self._right_bottom = self.right_bottom[0], self.left_top[1] + value - 1

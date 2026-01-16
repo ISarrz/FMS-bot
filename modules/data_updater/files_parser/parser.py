@@ -109,6 +109,7 @@ class Parser:
 
         name = value
         if "Ассам" in value:
+            value.replace("8.00-8.30 ", "")
             start = "08:00"
             end = "08:30"
 
@@ -116,25 +117,7 @@ class Parser:
 
         return event
 
-        name = find_pattern(value, events_name_patterns)
 
-        owner = "\n".join(find_all_patterns(value, events_owner_patterns))
-        if not owner:
-            owner = ""
-        place = "\n".join(find_all_patterns(value, events_place_patterns))
-        if not place:
-            place = ""
-
-        if name == "Ассамблея":
-            start = "08:00"
-            end = "08:25"
-        if name:
-            event = CnEvent(name=name, group_id=-1, date=self.date, start=start, end=end, owner=owner, place=place)
-        else:
-            event = CnEvent(name=value, group_id=-1, date=self.date, start=start, end=end, owner="", place="")
-        # ab = [event.name, event.owner, event.place]
-
-        return event
 
 
 if __name__ == '__main__':
