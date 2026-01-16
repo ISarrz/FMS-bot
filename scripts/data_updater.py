@@ -73,8 +73,4 @@ def data_update_run_repeat():
 
 
 if __name__ == "__main__":
-    start_time = time.perf_counter()
-    data_update_run_once()
-    end_time = time.perf_counter()
-    print(f"Затраченное время: {end_time - start_time:0.10f} сек")
-    # data_update_run_repeat()
+    data_update_run_repeat()
