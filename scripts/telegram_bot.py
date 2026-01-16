@@ -1,6 +1,6 @@
 from modules.database import *
 from modules.config import *
-
+from datetime import time
 from modules.telegram_int.timetable_handler.handlers import ConversationHandler_timetable
 from modules.telegram_int.start_handler.handlers import ConversationHandler_start
 from modules.telegram_int.settings_handler.handlers import ConversationHandler_settings
@@ -64,20 +64,11 @@ async def send_users_notifications(context: CallbackContext):
 
 @async_logger
 async def day_statistics(context: CallbackContext):
-    if not context.bot_data.get("sent_statistics"):
-        context.bot_data["sent_statistics"] = False
-
-    if datetime.now().hour == 12 and not statistic.flag:
-        statistic.flag = True
     statistic.reset()
     text = str(statistic)
     chat_id = get_config_field('admin_chat_id')
     await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
 
-
-    if datetime.now().hour != 12:
-        statistic.flag = False
-        context.bot_data["sent_statistics"] = False
 
 
 @async_logger
@@ -114,7 +105,7 @@ def main():
     job_deque = application.job_queue
     job_deque.run_repeating(send_users_notifications, 60)
     job_deque.run_repeating(send_logs, 20)
-    job_deque.run_repeating(day_statistics, 20)
+    job_deque.run_daily(day_statistics, time(hour=12, minute=0), days=(0,))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 

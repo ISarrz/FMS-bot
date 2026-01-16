@@ -5,8 +5,6 @@ import json
 
 
 class Statistic:
-    flag = False
-
     @property
     def users_count(self):
         return self.get_field("users_count")
