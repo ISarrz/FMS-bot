@@ -20,8 +20,7 @@ from modules.data_updater.text_generator import (
 
 def update():
     for user in User.all():
-        if user.id == 2:
-            update_user(user)
+        update_user(user)
 
 
 def update_user(user: User):

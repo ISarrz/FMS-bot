@@ -71,6 +71,12 @@ async def day_statistics(context: CallbackContext):
 
 
 
+async def get_statistics(update: Update, context: CallbackContext):
+    text = str(statistic)
+    chat_id = get_config_field('admin_chat_id')
+    await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
+
+
 @async_logger
 async def send_logs(context: CallbackContext):
     chat_id = get_config_field("logs_chat_id")
@@ -96,6 +102,7 @@ def main():
     application = ApplicationBuilder().token(token).build()
 
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
+    application.add_handler(CommandHandler('get_statistics', get_statistics))
     application.add_handler(CommandHandler('save_database', save_database))
     application.add_handler(CommandHandler('send_notification', send_notification))
     application.add_handler(ConversationHandler_start, 1)

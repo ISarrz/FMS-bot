@@ -66,7 +66,7 @@ def data_update_run_once():
 
 def data_update_run_repeat():
     schedule.every(5).minutes.do(run_data_update)
-    schedule.every().monday.do(make_database_backup)
+    schedule.every(12).hour.do(make_database_backup)
     while True:
         schedule.run_pending()
         time.sleep(1)

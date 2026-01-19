@@ -4,6 +4,7 @@ from modules.data_updater.painter import Text, Column, colors, Table
 from modules.data_updater.tools import EventsGroup, CategoryGroup, NodeGroup, normalize_value
 from typing import List, Any, Tuple
 from datetime import datetime
+from modules.data_updater.painter.containers.table.united_cell import UnitedCell
 
 
 def height_dfs(root: NodeGroup):
@@ -136,8 +137,16 @@ def get_timetable_image(root: NodeGroup, date: str):
 
     for column in range(1, width):
         for row in range(height - 1):
-            if table[row][column].content and table[row + 1][column].content:
-                if table[row][column].content.lines == table[row + 1][column].content.lines:
+            cell1 = table[row][column]
+            if isinstance(cell1, UnitedCell) and cell1.parent:
+                cell1 = cell1.parent
+
+            cell2 = table[row + 1][column]
+            if isinstance(cell2, UnitedCell) and cell2.parent:
+                cell2 = cell2.parent
+
+            if cell1.content and cell2.content:
+                if cell1.content.lines == cell2.content.lines:
                     table.unite_cells((row, column), (row + 1, column))
 
     groups_height = height - len(time_intervals)
