@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from modules.database.database.database import DB
 from modules.database.group.group import Group
-from modules.database.event.event import Event, EventAlreadyExistsError
+from modules.database.event.event import Event, EventAlreadyExistsError, EventNotFoundError
 from modules.time.dates import get_current_string_dates
 
 
@@ -88,7 +88,7 @@ class RegularEventFetcher:
         response = []
         x = DB.fetch_many(DB.events_from_regular_events_table_name, regular_event_id=regular_event_id)
         for event in x:
-            response.append(event["id"])
+            response.append(event["event_id"])
         return response
 
     @staticmethod
