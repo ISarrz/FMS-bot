@@ -64,10 +64,10 @@ async def send_users_notifications(context: CallbackContext):
 
 @async_logger
 async def day_statistics(context: CallbackContext):
-    statistic.reset()
     text = str(statistic)
     chat_id = get_config_field('admin_chat_id')
     await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
+    statistic.reset()
 
 
 
@@ -112,7 +112,7 @@ def main():
     job_deque = application.job_queue
     job_deque.run_repeating(send_users_notifications, 60)
     job_deque.run_repeating(send_logs, 20)
-    job_deque.run_daily(day_statistics, time(hour=12, minute=0), days=(0,))
+    job_deque.run_daily(day_statistics, time(hour=12, minute=0))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 

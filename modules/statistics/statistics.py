@@ -62,12 +62,11 @@ class Statistic:
         with open(data_statistics_path, "w") as f:
             json.dump(data, f, indent=4)
 
-    def reset(self):
+    def update(self):
         self.users_count = 0
+        self.users_with_groups_count = 0
         self.eleven_grade_count = 0
         self.ten_grade_count = 0
-        self.timetable_count = 0
-        self.errors_count = 0
 
         for group in Group(name="10 класс").children + Group(name="11 класс").children:
             if "группа" in group.name:
@@ -78,12 +77,34 @@ class Statistic:
             self.set_field(name, 0)
 
         for user in User.all():
-            for group in user.groups:
+            self.users_count += 1
+
+            user_groups = user.groups
+            if user_groups:
+                self.users_with_groups_count += 1
+
+            for group in user_groups:
                 if self.contains(group.name) and "группа" not in group.name:
                     count = self.get_field(group.name)
                     self.set_field(group.name, count + 1)
 
-                    self.users_count += 1
+                    if group.parent :
+                        if group.parent.name == "10 класс":
+                            self.ten_grade_count += 1
+
+                        elif group.parent.name == "11 класс":
+                            self.eleven_grade_count += 1
+
+    def reset(self):
+        self.timetable_count = 0
+        self.errors_count = 0
+
+        self.update()
+
+
+
+
+
 
     @staticmethod
     def contains(value: str):
@@ -104,6 +125,7 @@ class Statistic:
     def __str__(self):
         text = ""
         text += f"Всего пользователей: {self.users_count}\n"
+        text += f"Пользователей с группами: {self.users_with_groups_count}\n"
         text += f"11 класс: {self.eleven_grade_count}\n"
         text += f"10 класс: {self.ten_grade_count}\n"
 

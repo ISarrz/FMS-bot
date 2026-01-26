@@ -32,7 +32,7 @@ class DataCleaner:
     @staticmethod
     def clean_events():
         current_dates = get_current_string_dates()
-        events = Event.all()
+
         for event in Event.all():
             if event.date not in current_dates:
                 event.delete()
