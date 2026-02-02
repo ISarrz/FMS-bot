@@ -53,7 +53,7 @@ def run_data_update():
 
 
 def make_database_backup():
-    if DB.make_backup() == 0:
+    if DB.make_backup():
         Log.insert("База данных сохранена")
 
     else:
@@ -66,7 +66,7 @@ def data_update_run_once():
 
 def data_update_run_repeat():
     schedule.every(5).minutes.do(run_data_update)
-    schedule.every(12).hours.do(make_database_backup)
+    schedule.every().day.at("12:00").do(make_database_backup)
     while True:
         schedule.run_pending()
         time.sleep(1)

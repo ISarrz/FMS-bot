@@ -5,6 +5,8 @@ from modules.config.config import get_config_field
 import re
 from datetime import datetime
 import subprocess
+import boto3
+from botocore.exceptions import NoCredentialsError
 
 
 class DB:
@@ -28,75 +30,74 @@ class DB:
     @staticmethod
     def make_backup():
         cur_date = datetime.now().strftime("%d-%m-%Y")
-        cmd = [
-            "curl",
-            "--request", "PUT",
-            "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
-            "--aws-sigv4", "aws:amz:ru-central1:s3",
-            "--upload-file", database_path,
-            "--verbose",
-            f"{get_config_field('yandex_bucket_address')}/{cur_date}.db",
-        ]
-
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
+        session = boto3.session.Session()
+        s3 = session.client(
+            service_name='s3',
+            endpoint_url='https://storage.yandexcloud.net',
+            aws_access_key_id=get_config_field('yandex_key'),
+            aws_secret_access_key=get_config_field('yandex_secret_key'),
+            region_name='ru-central1'
         )
 
-        return result.returncode
+        try:
+            s3.upload_file(database_path, get_config_field("yandex_bucket_address"), f"{cur_date}.db")
+            return True
+
+        except FileNotFoundError:
+            return False
+
+        except NoCredentialsError:
+            return False
 
     @staticmethod
     def load_backup(backup_name: str):
-        cmd = ["curl",
-               "--request", "GET",
-               "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
-               "--aws-sigv4", "aws:amz:ru-central1:s3",
-               "--verbose",
-               f"{get_config_field('yandex_bucket_address')}/{backup_name}"
-               ]
+        s3 = boto3.client(
+            service_name='s3',
+            endpoint_url='https://storage.yandexcloud.net',
+            aws_access_key_id=get_config_field('yandex_key'),
+            aws_secret_access_key=get_config_field('yandex_secret_key'),
+            region_name='ru-central1'
+        )
 
-        with open(database_path, "wb") as f:
-            result = subprocess.run(
-                cmd,
-                stderr=subprocess.PIPE,
-                stdout=f
+        try:
+            s3.download_file(
+               get_config_field("yandex_bucket_address") ,
+                backup_name,
+                database_path
             )
+            return True
 
-        return result.returncode
+        except Exception as e:
+            return False
 
     @staticmethod
     def get_backups_names():
-        cmd = ["curl",
-               "--request", "GET",
-               "--user", f"{get_config_field('yandex_key')}:{get_config_field('yandex_secret_key')}",
-               "--aws-sigv4", "aws:amz:ru-central1:s3",
-               "--verbose",
-               f"{get_config_field('yandex_bucket_address')}?list-type=2"
-               ]
-
-        result = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
+        s3 = boto3.client(
+            service_name='s3',
+            endpoint_url='https://storage.yandexcloud.net',
+            aws_access_key_id=get_config_field('yandex_key'),
+            aws_secret_access_key=get_config_field('yandex_secret_key'),
+            region_name='ru-central1'
         )
 
-        xml_data = result.stdout
-        root = ET.fromstring(xml_data)
-        ns = {"s3": "http://s3.amazonaws.com/doc/2006-03-01/"}
-        files = [
-            elem.text
-            for elem in root.findall(".//s3:Contents/s3:Key", ns)
-        ]
+        bucket_name = get_config_field("yandex_bucket_address")
 
-        return files
+        try:
+            response = s3.list_objects_v2(Bucket=bucket_name)
+
+            if 'Contents' in response:
+                files = [obj['Key'] for obj in response['Contents']]
+                return files
+
+            return []
+        except Exception:
+            return []
 
     @staticmethod
     def load_last_backup():
         backups_names = DB.get_backups_names()
         backups_names.sort(key=lambda s: datetime.strptime(s.split(".")[0], "%d-%m-%Y"))
-
+        print(backups_names[-1])
         return DB.load_backup(backups_names[-1])
 
     @staticmethod
@@ -248,7 +249,7 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id          INTEGER PRIMARY KEY AUTOINCREMENT,
                             telegram_id INTEGER
                         )""")
 
@@ -260,8 +261,8 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_groups
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            user_id INTEGER REFERENCES users,
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id  INTEGER REFERENCES users,
                             group_id INTEGER REFERENCES groups
                         )""")
 
@@ -273,14 +274,14 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS events
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            name TEXT,
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name     TEXT,
                             group_id INTEGER REFERENCES groups,
-                            date TEXT,
-                            start TEXT,
-                            end TEXT,
-                            owner TEXT,
-                            place TEXT
+                            date     TEXT,
+                            start    TEXT,
+                            end      TEXT,
+                            owner    TEXT,
+                            place    TEXT
                         )""")
 
     @staticmethod
@@ -291,8 +292,8 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS events_from_regular_events
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            event_id INTEGER REFERENCES events,
+                            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                            event_id         INTEGER REFERENCES events,
                             regular_event_id INTEGER REFERENCES regular_events
                         )""")
 
@@ -304,14 +305,14 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS regular_events
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            name TEXT,
+                            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name     TEXT,
                             group_id INTEGER REFERENCES groups,
-                            weekday INTEGER,
-                            start TEXT,
-                            end TEXT,
-                            owner TEXT,
-                            place TEXT
+                            weekday  INTEGER,
+                            start    TEXT,
+                            end      TEXT,
+                            owner    TEXT,
+                            place    TEXT
                         )""")
 
     @staticmethod
@@ -322,7 +323,7 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS groups
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id   INTEGER PRIMARY KEY AUTOINCREMENT,
                             name TEXT
                         )""")
 
@@ -334,9 +335,9 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS groups_relations
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id        INTEGER PRIMARY KEY AUTOINCREMENT,
                             parent_id INTEGER REFERENCES groups,
-                            child_id INTEGER REFERENCES groups
+                            child_id  INTEGER REFERENCES groups
                         )""")
 
     @staticmethod
@@ -347,11 +348,11 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS timetable
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id INTEGER REFERENCES users,
-                            date TEXT,
-                            text TEXT,
-                            image BLOB
+                            date    TEXT,
+                            text    TEXT,
+                            image   BLOB
                         )""")
 
     @staticmethod
@@ -362,7 +363,7 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS logs
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id    INTEGER PRIMARY KEY AUTOINCREMENT,
                             value TEXT
                         )""")
 
@@ -374,10 +375,10 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_settings
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            user_id parent_id INTEGER REFERENCES users,
+                            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id       parent_id INTEGER REFERENCES users,
                             notifications INT,
-                            mode TEXT
+                            mode          TEXT
                         )""")
 
     @staticmethod
@@ -388,9 +389,9 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS users_notifications
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id      INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id parent_id INTEGER REFERENCES users,
-                            value TEXT
+                            value   TEXT
                         )""")
 
     @staticmethod
@@ -401,9 +402,9 @@ class DB:
             cur.execute("""
                         CREATE TABLE IF NOT EXISTS free_dates_for_regular_events
                         (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id               INTEGER PRIMARY KEY AUTOINCREMENT,
                             regular_event_id parent_id INTEGER REFERENCES regular_events,
-                            date TEXT
+                            date             TEXT
                         )""")
 
 

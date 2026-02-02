@@ -112,7 +112,7 @@ def main():
     job_deque = application.job_queue
     job_deque.run_repeating(send_users_notifications, 60)
     job_deque.run_repeating(send_logs, 20)
-    job_deque.run_daily(day_statistics, time(hour=12, minute=0))
+    job_deque.run_daily(day_statistics, time(hour=9, minute=0))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
