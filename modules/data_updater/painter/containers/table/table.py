@@ -221,16 +221,25 @@ class Table(BaseContainer):
         if cell2.parent is not None:
             cell2 = cell2.parent
 
+        # Cells can already belong to the same merged block during subsequent passes.
+        if cell1 is cell2:
+            return
+
         if cell1.coordinates > cell2.coordinates:
             cell1, cell2 = cell2, cell1
 
         # Exception check
-        if not (cell1.top_row == cell2.top_row and  # rows same
-                cell1.bottom_row == cell2.bottom_row and
-                abs(cell1.right_column - cell2.left_column) <= 1 or
-                cell1.left_column == cell2.left_column and  # columns same
-                cell1.right_column == cell2.right_column and
-                abs(cell1.bottom_row - cell2.top_row) <= 1):
+        same_rows = (
+            cell1.top_row == cell2.top_row and
+            cell1.bottom_row == cell2.bottom_row and
+            abs(cell1.right_column - cell2.left_column) <= 1
+        )
+        same_columns = (
+            cell1.left_column == cell2.left_column and
+            cell1.right_column == cell2.right_column and
+            abs(cell1.bottom_row - cell2.top_row) <= 1
+        )
+        if not (same_rows or same_columns):
             raise ValueError('Blocks are not neighbors')
 
         main_cell = UnitedCell()
