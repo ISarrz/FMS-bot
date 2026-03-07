@@ -213,6 +213,20 @@ class Table(BaseContainer):
                     cell.draw_content(canvas)
                     cell.draw_outline(canvas)
 
+    def _blocks_are_neighbors(self, cell1: UnitedCell, cell2: UnitedCell) -> bool:
+        # Adjacent means shared border either horizontally or vertically for equal spans.
+        same_rows = (
+            cell1.top_row == cell2.top_row and
+            cell1.bottom_row == cell2.bottom_row and
+            (cell1.right_column + 1 == cell2.left_column or cell2.right_column + 1 == cell1.left_column)
+        )
+        same_columns = (
+            cell1.left_column == cell2.left_column and
+            cell1.right_column == cell2.right_column and
+            (cell1.bottom_row + 1 == cell2.top_row or cell2.bottom_row + 1 == cell1.top_row)
+        )
+        return same_rows or same_columns
+
     def _unite_blocks(self, cell1: UnitedCell, cell2: UnitedCell):
         # Unite blocks of united cells
         if cell1.parent is not None:
@@ -229,17 +243,7 @@ class Table(BaseContainer):
             cell1, cell2 = cell2, cell1
 
         # Exception check
-        same_rows = (
-            cell1.top_row == cell2.top_row and
-            cell1.bottom_row == cell2.bottom_row and
-            abs(cell1.right_column - cell2.left_column) <= 1
-        )
-        same_columns = (
-            cell1.left_column == cell2.left_column and
-            cell1.right_column == cell2.right_column and
-            abs(cell1.bottom_row - cell2.top_row) <= 1
-        )
-        if not (same_rows or same_columns):
+        if not self._blocks_are_neighbors(cell1, cell2):
             raise ValueError('Blocks are not neighbors')
 
         main_cell = UnitedCell()
@@ -274,6 +278,12 @@ class Table(BaseContainer):
                 united_cell2 = cell2.parent
         else:
             united_cell2 = UnitedCell.convert_cell_to_united_cell(cell2)
+
+        # Repeated merge passes can target incompatible parents; skip invalid merges.
+        if united_cell1 is united_cell2:
+            return
+        if not self._blocks_are_neighbors(united_cell1, united_cell2):
+            return
 
         self._unite_blocks(united_cell1, united_cell2)
         # self._update_pixels()
