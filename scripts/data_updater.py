@@ -11,6 +11,7 @@ from modules.database.database.database import DB
 from modules.database.log.log import Log
 from modules.database.event.regular_event import RegularEvent
 
+
 @logger
 def run_painter():
     updater.update()
@@ -37,27 +38,35 @@ async def web_parse():
 def run_web_parser():
     asyncio.run(web_parse())
 
+
 @logger
 def generate_events():
     for regular_event in RegularEvent.all():
         regular_event.generate_events()
 
+
 @logger
 def run_data_update():
-    print("update")
-    run_data_cleaner()
-    run_web_parser()
-    run_parser()
-    generate_events()
-    run_painter()
+    try:
+        print("update")
+        run_data_cleaner()
+        run_web_parser()
+        run_parser()
+        generate_events()
+        run_painter()
+    except Exception as e:
+        Log.insert(str(e))
 
 
 def make_database_backup():
-    if DB.make_backup():
-        Log.insert("База данных сохранена")
+    try:
+        if DB.make_backup():
+            Log.insert("База данных сохранена")
 
-    else:
-        Log.insert("Ошибка в сохранении базы данных")
+        else:
+            Log.insert("Ошибка в сохранении базы данных")
+    except Exception as e:
+        Log.insert(str(e))
 
 
 def data_update_run_once():
