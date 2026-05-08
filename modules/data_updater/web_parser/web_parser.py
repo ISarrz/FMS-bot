@@ -21,7 +21,8 @@ class WebParser:
     def __init__(self):
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
-            headers=self.headers
+            headers=self.headers,
+            timeout=httpx.Timeout(30.0, connect=10.0)
         )
 
     @staticmethod
@@ -51,10 +52,27 @@ class WebParser:
             "password": self.site_password,
             "return_uri": "/"
         }
-        response = await self.client.post(login_url, data=data)
-        result = response.json()
+        try:
+            response = await self.client.post(login_url, data=data)
+        except (httpx.TimeoutException, httpx.NetworkError) as e:
+            print(f"WebParser.login network error: {e!r}")
+            return False
 
-        return result.get("result") and result.get("actions")[0].get("type") == "redirect"
+        if response.status_code != 200:
+            print(f"WebParser.login bad status: {response.status_code}")
+            return False
+
+        try:
+            result = response.json()
+        except ValueError as e:
+            print(f"WebParser.login non-JSON response: {e!r}")
+            return False
+
+        actions = result.get("actions") or []
+        if not result.get("result") or not actions:
+            return False
+
+        return actions[0].get("type") == "redirect"
 
     async def parse_board(self):
         board_url = "/journal-board-action"

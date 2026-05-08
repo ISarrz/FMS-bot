@@ -242,9 +242,11 @@ class Table(BaseContainer):
         if cell1.coordinates > cell2.coordinates:
             cell1, cell2 = cell2, cell1
 
-        # Exception check
+        # После resolve к parent блоки могут оказаться не-соседними,
+        # хотя guard в unite_cells пропустил исходные cells.
+        # Пропускаем такие merge'ы, чтобы не падать при генерации картинки.
         if not self._blocks_are_neighbors(cell1, cell2):
-            raise ValueError('Blocks are not neighbors')
+            return
 
         main_cell = UnitedCell()
         main_cell.set_main(cell1, cell2)

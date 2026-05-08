@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 from modules.database import *
 from modules.config import *
 from datetime import time
@@ -12,6 +15,7 @@ from datetime import datetime
 from telegram import (
     Update
 )
+from telegram.error import RetryAfter, TimedOut, NetworkError
 
 from telegram.ext import (
     ApplicationBuilder,
@@ -25,7 +29,7 @@ async def save_database(update: Update, context: CallbackContext):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="No Access")
         return
 
-    if DB.make_backup() == 0:
+    if DB.make_backup():
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Успешно")
 
     else:
@@ -77,17 +81,32 @@ async def get_statistics(update: Update, context: CallbackContext):
     await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
 
 
-@async_logger
 async def send_logs(context: CallbackContext):
+    # Не оборачивать в @async_logger: при сбое отправки traceback попадёт в Log,
+    # который тут же повторно попытается улететь — это и вызывало flood-лавину.
     chat_id = get_config_field("logs_chat_id")
-    for log in Log.all():
-        bio = BytesIO(log.value.encode("utf-8"))
-        bio.name = "log.txt"
-        if len(log.value) > 4096:
-            await context.bot.send_document(chat_id=chat_id, document=bio)
-        else:
-            await context.bot.send_message(chat_id=chat_id, text=log.value)
+    logs = Log.all()
+    if not logs:
+        return
 
+    BATCH_LIMIT = 100
+    batch = logs[:BATCH_LIMIT]
+
+    try:
+        if len(batch) == 1 and len(batch[0].value) <= 4096:
+            await context.bot.send_message(chat_id=chat_id, text=batch[0].value)
+        else:
+            combined = "\n\n---\n\n".join(log.value for log in batch)
+            bio = BytesIO(combined.encode("utf-8"))
+            bio.name = f"logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            await context.bot.send_document(chat_id=chat_id, document=bio)
+    except (RetryAfter, TimedOut, NetworkError):
+        return
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
+        return
+
+    for log in batch:
         log.delete()
 
 
@@ -102,18 +121,18 @@ def main():
     application = ApplicationBuilder().token(token).build()
 
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
-    application.add_handler(CommandHandler('get_statistics', get_statistics))
-    application.add_handler(CommandHandler('save_database', save_database))
-    application.add_handler(CommandHandler('send_notification', send_notification))
+    # application.add_handler(CommandHandler('get_statistics', get_statistics))
+    # application.add_handler(CommandHandler('save_database', save_database))
+    # application.add_handler(CommandHandler('send_notification', send_notification))
     application.add_handler(ConversationHandler_start, 1)
-    application.add_handler(ConversationHandler_timetable, 2)
-    application.add_handler(ConversationHandler_settings, 3)
+    # application.add_handler(ConversationHandler_timetable, 2)
+    # application.add_handler(ConversationHandler_settings, 3)
 
-    job_deque = application.job_queue
-    job_deque.run_repeating(send_users_notifications, 60)
-    job_deque.run_repeating(send_logs, 20)
-    job_deque.run_daily(day_statistics, time(hour=9, minute=0))
-
+    # job_deque = application.job_queue
+    # job_deque.run_repeating(send_users_notifications, 60)
+    # job_deque.run_repeating(send_logs, 20)
+    # job_deque.run_daily(day_statistics, time(hour=9, minute=0))
+    #
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

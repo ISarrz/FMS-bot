@@ -90,12 +90,14 @@ class DB:
                 return files
 
             return []
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
     def load_last_backup():
         backups_names = DB.get_backups_names()
+        if not backups_names:
+            return False
         backups_names.sort(key=lambda s: datetime.strptime(s.split(".")[0], "%d-%m-%Y"))
         print(backups_names[-1])
         return DB.load_backup(backups_names[-1])

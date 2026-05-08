@@ -9,11 +9,24 @@ from modules.database import User
 from modules.logger.logger import async_logger, telegram_logger
 
 
+def _clamp_index(user_data: dict, key: str, length: int) -> int:
+    if length <= 0:
+        return 0
+    ind = user_data.get(key, 0)
+    if ind < 0 or ind >= length:
+        ind = 0
+        user_data[key] = ind
+    return ind
+
+
 @telegram_logger
 async def send_weeks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await clear_last_message(update, context)
     sheets = context.user_data["weeks_sheets"]
-    sheet = sheets[context.user_data["week_sheet_ind"]]
+    if not sheets:
+        return
+    ind = _clamp_index(context.user_data, "week_sheet_ind", len(sheets))
+    sheet = sheets[ind]
 
     message = await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -27,7 +40,10 @@ async def send_weeks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @async_logger
 async def update_weeks_menu(context: ContextTypes.DEFAULT_TYPE):
     sheets = context.user_data["weeks_sheets"]
-    sheet = sheets[context.user_data["week_sheet_ind"]]
+    if not sheets:
+        return
+    ind = _clamp_index(context.user_data, "week_sheet_ind", len(sheets))
+    sheet = sheets[ind]
 
     message = context.user_data["timetable_message"]
 
@@ -43,7 +59,10 @@ async def update_weeks_menu(context: ContextTypes.DEFAULT_TYPE):
 async def send_timetable_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await clear_last_message(update, context)
     sheets = context.user_data["timetable_sheets"]
-    sheet = sheets[context.user_data["timetable_sheet_ind"]]
+    if not sheets:
+        return
+    ind = _clamp_index(context.user_data, "timetable_sheet_ind", len(sheets))
+    sheet = sheets[ind]
     user = User(telegram_id=update.effective_chat.id)
 
     if user.settings.mode == "image":
