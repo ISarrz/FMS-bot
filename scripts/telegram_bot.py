@@ -121,18 +121,18 @@ def main():
     application = ApplicationBuilder().token(token).build()
 
     application.add_handler(CommandHandler('get_chat_id', get_chat_id))
-    # application.add_handler(CommandHandler('get_statistics', get_statistics))
-    # application.add_handler(CommandHandler('save_database', save_database))
-    # application.add_handler(CommandHandler('send_notification', send_notification))
+    application.add_handler(CommandHandler('get_statistics', get_statistics))
+    application.add_handler(CommandHandler('save_database', save_database))
+    application.add_handler(CommandHandler('send_notification', send_notification))
     application.add_handler(ConversationHandler_start, 1)
-    # application.add_handler(ConversationHandler_timetable, 2)
-    # application.add_handler(ConversationHandler_settings, 3)
+    application.add_handler(ConversationHandler_timetable, 2)
+    application.add_handler(ConversationHandler_settings, 3)
 
-    # job_deque = application.job_queue
-    # job_deque.run_repeating(send_users_notifications, 60)
-    # job_deque.run_repeating(send_logs, 20)
-    # job_deque.run_daily(day_statistics, time(hour=9, minute=0))
-    #
+    job_deque = application.job_queue
+    job_deque.run_repeating(send_users_notifications, 60)
+    job_deque.run_repeating(send_logs, 20)
+    job_deque.run_daily(day_statistics, time(hour=9, minute=0))
+
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
